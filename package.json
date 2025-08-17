@@ -8,7 +8,8 @@
     "dev": "nodemon server.js",
     "client": "cd client && npm start",
     "server": "nodemon server.js",
-    "build": "echo No client build step; server-only project",
+    "build": "echo \"No build step required\"",
+    "heroku-postbuild": "echo \"No build required\"",
     "test": "jest"
   },
   "keywords": ["todo", "api", "mern", "authentication", "jwt"],
