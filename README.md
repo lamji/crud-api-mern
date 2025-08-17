@@ -48,6 +48,8 @@ MONGODB_URI=mongodb://localhost:27017/todo-app
 # MONGODB_URI=mongodb+srv://<user>:<pass>@<cluster>/<db>?retryWrites=true&w=majority
 JWT_SECRET=change-this-secret
 JWT_EXPIRE=30d
+GUEST_EMAIL=guest@example.com
+GUEST_PASSWORD=guestpass123
 ```
 
 Important: Never commit `.env` to source control.
@@ -97,6 +99,18 @@ curl -X POST http://localhost:5000/api/auth/login \
 ```
   - Response includes `token`. Use it for protected routes:
   - Header: `Authorization: Bearer <token>`
+
+### Guest Login
+- Route: `POST /api/auth/guest-login`
+- Body: none
+- Behavior:
+  - Uses `GUEST_EMAIL` and `GUEST_PASSWORD` from your `.env`
+  - If a user with `GUEST_EMAIL` does not exist, it will be created automatically with role `guest`
+  - Returns a JWT `token` and user info
+- cURL:
+```bash
+curl -X POST http://localhost:5000/api/auth/guest-login
+```
 
 ### Postman setup: auto-save token
 

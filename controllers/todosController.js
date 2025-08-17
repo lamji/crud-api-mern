@@ -52,10 +52,10 @@ exports.getTodos = async (req, res, next) => {
      * Fetch todos with filters, sort, pagination, and limited user fields
      */
     const todos = await Todo.find(filter)
-      .sort(sort)
-      .skip(skip)
-      .limit(parseInt(limit))
-      .populate('user', 'name email');
+    .select('-user')
+    .sort(sort)
+    .skip(skip)
+    .limit(parseInt(limit));
 
     /**
      * Total count for the same filter (for pagination metadata)

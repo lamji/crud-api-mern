@@ -172,9 +172,72 @@ async function updateProfile(req, res, next) {
   }
 }
 
+/**
+ * Handle guest login
+ * - Uses environment variables for guest credentials
+ * - Returns JWT and user info
+ */
+async function guestLogin(req, res, next) {
+  try {
+    const guestEmail = process.env.GUEST_EMAIL;
+    const guestPassword = process.env.GUEST_PASSWORD;
+
+    if (!guestEmail || !guestPassword) {
+      return res.status(500).json({
+        success: false,
+        message: 'Guest credentials not configured',
+      });
+    }
+
+    let user = await User.findOne({ email: guestEmail });
+    
+    if (!user) {
+      // Create guest user if doesn't exist
+      user = await User.create({
+        name: 'Guest User',
+        email: guestEmail,
+        password: guestPassword,
+        role: 'guest'
+      });
+    } else {
+      // Verify password if user exists
+      try {
+        user = await User.findByCredentials(guestEmail, guestPassword);
+      } catch (err) {
+        return res.status(401).json({
+          success: false,
+          message: 'Guest credentials are invalid',
+        });
+      }
+    }
+
+    user.lastLogin = new Date();
+    await user.save();
+
+    const token = generateToken({ id: user._id });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Guest login successful',
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        lastLogin: user.lastLogin,
+        createdAt: user.createdAt,
+      },
+    });
+  } catch (error) {
+    return next(error);
+  }
+}
+
 module.exports = {
   register,
   login,
   getMe,
   updateProfile,
+  guestLogin,
 };

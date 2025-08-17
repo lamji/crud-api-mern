@@ -1,7 +1,7 @@
 const express = require('express');
 const { body } = require('express-validator');
 const { protect } = require('../middleware/auth');
-const { register, login, getMe, updateProfile } = require('../controllers/authController');
+const { register, login, getMe, updateProfile, guestLogin } = require('../controllers/authController');
 
 const router = express.Router();
 
@@ -71,6 +71,11 @@ router.get('/me', protect, getMe);
 // @desc    Update user profile
 // @route   PUT /auth/profile
 // @access  Private
+// @desc    Guest login
+// @route   POST /auth/guest-login
+// @access  Public
+router.post('/guest-login', guestLogin);
+
 router.put('/profile', protect, [
   // Validate and sanitize `name` (optional field)
   // - optional(): only validate if provided
