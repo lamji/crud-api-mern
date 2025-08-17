@@ -108,7 +108,6 @@ async function login(req, res, next) {
  * - Assumes `protect` middleware populated req.user
  */
 async function getMe(req, res, next) {
-  console.log('requesting /me....');
   try {
     const user = await User.findById(req.user.id);
 

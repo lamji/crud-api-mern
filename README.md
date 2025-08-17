@@ -199,6 +199,8 @@ curl -X POST http://localhost:5000/api/todos \
   - `page` (number, default 1)
   - `limit` (number, default 10)
   - `sort` (string, default `-createdAt`)
+    - Sort order: prefix with `-` for descending; omit for ascending.
+    - Examples: `-createdAt` (newest first), `createdAt` (oldest first), `-dueDate` (latest due first), `dueDate` (earliest due first)
 - cURL:
 ```bash
 curl "http://localhost:5000/api/todos?priority=high&page=1&limit=5&sort=-dueDate" \

@@ -8,7 +8,7 @@
     "dev": "nodemon server.js",
     "client": "cd client && npm start",
     "server": "nodemon server.js",
-    "build": "cd client && npm run build",
+    "build": "echo No client build step; server-only project",
     "test": "jest"
   },
   "keywords": ["todo", "api", "mern", "authentication", "jwt"],
