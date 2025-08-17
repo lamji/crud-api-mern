@@ -12,9 +12,13 @@ require('dotenv').config();
  * Route Imports
  * @module routes/auth - Handles user authentication (register, login, profile)
  * @module routes/todos - Manages CRUD operations for todo items
+ * @module routes/debts - Manages CRUD operations for debt items
+ * @module routes/transactions - Manages CRUD operations for transaction items
  */
 const authRoutes = require('./routes/auth');
 const todoRoutes = require('./routes/todos');
+const debtRoutes = require('./routes/debts');
+const transactionRoutes = require('./routes/transactions');
 
 /**
  * Custom Middleware
@@ -102,6 +106,8 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/todo-app'
  */
 app.use('/api/auth', authRoutes);
 app.use('/api/todos', todoRoutes);
+app.use('/api/debts', debtRoutes);
+app.use('/api/transactions', transactionRoutes);
 
 /**
  * Health Check Endpoint
