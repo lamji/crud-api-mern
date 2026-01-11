@@ -17,6 +17,9 @@ require('dotenv').config();
  */
 const authRoutes = require('./routes/auth');
 const todoRoutes = require('./routes/todos');
+const notificationRoutes = require('./routes/notifications');
+const testRoutes = require('./routes/test');
+const profileRoutes = require('./routes/profile');
 
 /**
  * Custom Middleware
@@ -150,6 +153,9 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/todo-app'
  */
 app.use('/api/auth', authRoutes);
 app.use('/api/todos', todoRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/test', testRoutes);
+app.use('/api/profile', profileRoutes);
 
 /**
  * Health Check Endpoint
