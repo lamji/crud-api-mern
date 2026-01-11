@@ -1,8 +1,9 @@
 const express = require('express');
 const { body } = require('express-validator');
 const { protect } = require('../middleware/auth');
-const { register, login, getMe, updateProfile, guestLogin } = require('../controllers/authController');
+const { register, logout, login, getMe, updateProfile, guestLogin } = require('../controllers/authController');
 const { validateRegister, validateLogin } = require('../validators/authValidator');
+const profileController = require('../controllers/profile/index');
 
 const router = express.Router();
 
@@ -27,5 +28,25 @@ router.post('/login', validateLogin, login);
 // @route   POST /auth/guest-login
 // @access  Public
 router.post('/guest-login', guestLogin);
+
+// @desc    Logout user
+// @route   POST /auth/logout
+// @access  Private
+router.post('/logout', protect, logout);
+
+// @desc    Verify email with OTP (for registration with temporary token)
+// @route   POST /auth/verify-email
+// @access  Public (with temporary token)
+router.post('/verify-email', [
+  body('otp')
+    .notEmpty()
+    .withMessage('OTP is required')
+    .isLength({ min: 6, max: 6 })
+    .withMessage('OTP must be exactly 6 digits'),
+  body('tempToken')
+    .optional()
+    .notEmpty()
+    .withMessage('Temporary token is required for registration verification')
+], profileController.verifyEmail);
 
 module.exports = router;

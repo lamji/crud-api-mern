@@ -1,5 +1,6 @@
 const { verifyToken } = require('../utils/jwt');
 const User = require('../models/User');
+const BlacklistedToken = require('../models/BlacklistedToken');
 
 const protect = async (req, res, next) => {
   try {
@@ -15,6 +16,15 @@ const protect = async (req, res, next) => {
       return res.status(401).json({
         success: false,
         message: 'Not authorized to access this route'
+      });
+    }
+
+    // Check if token is blacklisted
+    const isBlacklisted = await BlacklistedToken.findOne({ token });
+    if (isBlacklisted) {
+      return res.status(401).json({
+        success: false,
+        message: 'Token has been invalidated. Please login again.'
       });
     }
 

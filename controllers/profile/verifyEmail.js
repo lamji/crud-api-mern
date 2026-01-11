@@ -1,7 +1,8 @@
+const mongoose = require('mongoose');
 const { validationResult } = require('express-validator');
 const Profile = require('../../models/Profile');
 const User = require('../../models/User');
-const { generateToken } = require('../../utils/jwt');
+const { generateToken, verifyToken } = require('../../utils/jwt');
 
 /**
  * @desc    Verify email with OTP
@@ -10,7 +11,32 @@ const { generateToken } = require('../../utils/jwt');
  */
 exports.verifyEmail = async (req, res) => {
   try {
-    const { otp } = req.body;
+    const { otp, tempToken } = req.body;
+    let email = null;
+    let isTempTokenVerification = false;
+
+    // Check if this is a temporary token verification (registration)
+    if (tempToken) {
+      try {
+        const decoded = verifyToken(tempToken);
+        
+        // Validate this is a temporary email verification token
+        if (decoded.type === 'email_verification' && decoded.temp) {
+          email = decoded.email;
+          isTempTokenVerification = true;
+        } else {
+          return res.status(401).json({
+            success: false,
+            message: 'Invalid or expired token'
+          });
+        }
+      } catch (tokenError) {
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid or expired token'
+        });
+      }
+    }
 
     if (!otp || typeof otp !== 'string' || otp.trim().length !== 6) {
       return res.status(400).json({
@@ -19,30 +45,45 @@ exports.verifyEmail = async (req, res) => {
       });
     }
 
-    // First check if this is a registration verification (no auth required for registration)
-    // Check if there's a pending registration with this OTP
+    // First check if this is a registration verification
     if (global.pendingRegistrations) {
-      for (const [email, pendingReg] of Object.entries(global.pendingRegistrations)) {
-        if (pendingReg.emailVerificationOtp === otp.trim() && 
+      for (const [regEmail, pendingReg] of Object.entries(global.pendingRegistrations)) {
+        // For temp token verification, only check the specific email
+        // For regular verification, check all pending registrations
+        const emailMatch = isTempTokenVerification ? regEmail === email : true;
+        
+        if (emailMatch &&
+            pendingReg.emailVerificationOtp === otp.trim() && 
             new Date() <= pendingReg.emailVerificationOtpExpiry) {
           
-          // This is a valid registration OTP - create the user account
+          // This is a valid registration OTP - create the user account and profile atomically
+          const session = await mongoose.startSession();
+          session.startTransaction();
           try {
-            const user = await User.create({
+            const user = await User.create([{
               name: pendingReg.name,
               email: pendingReg.email,
               password: pendingReg.password,
-              isEmailVerified: true,
+              emailVerified: true,
               emailVerifiedAt: new Date()
-            });
+            }], { session });
+
+            const newUser = user[0];
+
+            // Create corresponding profile document using service
+            const { createDefaultProfile } = require('../../utils/profileService');
+            await createDefaultProfile(newUser, pendingReg.name, session);
+
+            await session.commitTransaction();
+            session.endSession();
 
             // Clean up pending registration
-            delete global.pendingRegistrations[email];
+            delete global.pendingRegistrations[regEmail];
 
             // Generate JWT token with role included
             const token = generateToken({ 
-              id: user._id,
-              role: user.role 
+              id: newUser._id,
+              role: newUser.role 
             });
 
             return res.status(201).json({
@@ -50,16 +91,18 @@ exports.verifyEmail = async (req, res) => {
               message: 'Registration completed successfully',
               token,
               user: {
-                name: user.name,
-                email: user.email,
-                role: user.role,
-                isEmailVerified: user.isEmailVerified,
-                emailVerifiedAt: user.emailVerifiedAt,
-                createdAt: user.createdAt
+                name: newUser.name,
+                email: newUser.email,
+                role: newUser.role,
+                emailVerified: newUser.emailVerified,
+                emailVerifiedAt: newUser.emailVerifiedAt,
+                createdAt: newUser.createdAt
               },
             });
-          } catch (createError) {
-            console.error('Error creating user during registration verification:', createError);
+          } catch (error) {
+            await session.abortTransaction();
+            session.endSession();
+            console.error('Error creating user during registration verification:', error);
             return res.status(500).json({
               success: false,
               message: 'Failed to complete registration. Please try again.'
@@ -70,124 +113,112 @@ exports.verifyEmail = async (req, res) => {
     }
 
     // If not a registration verification, proceed with profile email verification
-    let profile = await Profile.findOne({ userId: req.user.id }).lean();
-    
-    if (!profile) {
-      return res.status(404).json({
-        success: false,
-        message: 'Profile not found'
-      });
-    }
-
-    // Check if OTP exists and is not expired
-    if (!profile.emailVerificationOtp || !profile.emailVerificationOtpExpiry) {
-      return res.status(400).json({
-        success: false,
-        message: 'No verification code found. Please request a new one.'
-      });
-    }
-
-    if (new Date() > profile.emailVerificationOtpExpiry) {
-      return res.status(400).json({
-        success: false,
-        message: 'Verification code has expired. Please request a new one.'
-      });
-    }
-
-    // Rate limiting: Check for too many failed attempts
-    if (profile.otpAttempts && profile.otpAttempts >= 5) {
-      // Check if lock has expired
-      if (profile.otpLockedUntil && new Date() < profile.otpLockedUntil) {
-        const remainingTime = Math.ceil((profile.otpLockedUntil - new Date()) / 1000);
-        console.log(`Account locked. Remaining time: ${remainingTime} seconds`);
-        
-        return res.status(429).json({
-          success: false,
-          message: `Too many failed attempts. Account locked. Try again in ${remainingTime} seconds.`
-        });
-      }
+    // Only check profile if this is not a temporary token verification
+    if (!isTempTokenVerification) {
+      let profile = await Profile.findOne({ userId: req.user.id }).lean();
       
-      // Lock has expired, reset attempts and continue
-      if (profile.otpLockedUntil && new Date() >= profile.otpLockedUntil) {
-        console.log('Lock expired, resetting attempts');
-        await Profile.findOneAndUpdate(
-          { userId: req.user.id },
-          { 
-            $unset: {
-              otpLockedUntil: 1,
-              otpAttempts: 1
-            }
-          }
-        );
-        
-        // Refresh profile data after reset
-        profile = await Profile.findOne({ userId: req.user.id }).lean();
-      } else {
-        // Set new lock for 1 minute
-        const lockUntil = new Date(Date.now() + 1 * 60 * 1000);
-        await Profile.findOneAndUpdate(
-          { userId: req.user.id },
-          { $set: { otpLockedUntil: lockUntil } }
-        );
-        
-        return res.status(429).json({
+      console.log('Profile verification flow - profile found:', !!profile);
+      console.log('Profile emailVerified status:', profile?.emailVerified);
+      
+      if (!profile) {
+        return res.status(404).json({
           success: false,
-          message: 'Too many failed attempts. Account locked for 1 minute.'
+          message: 'Profile not found'
         });
       }
-    }
 
-    if (profile.emailVerificationOtp !== otp.trim()) {
-      // Increment failed attempts
-      const attempts = (profile.otpAttempts || 0) + 1;
-      await Profile.findOneAndUpdate(
+      // If email is already verified, return success
+      if (profile.emailVerified) {
+        return res.status(200).json({
+          success: true,
+          message: 'Email is already verified',
+          profile
+        });
+      }
+
+      // Check if OTP exists and is not expired
+      if (!profile.emailVerificationOtp || !profile.emailVerificationOtpExpiry) {
+        return res.status(400).json({
+          success: false,
+          message: 'No verification code found. Please request a new one.'
+        });
+      }
+
+      if (new Date() > profile.emailVerificationOtpExpiry) {
+        return res.status(400).json({
+          success: false,
+          message: 'Verification code has expired. Please request a new one.'
+        });
+      }
+
+      // Check if OTP matches
+      if (profile.emailVerificationOtp !== otp.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid verification code'
+        });
+      }
+
+      // Check OTP attempts
+      if (profile.emailVerificationOtpAttempts >= 3) {
+        return res.status(429).json({
+          success: false,
+          message: 'Too many failed attempts. Please request a new verification code.'
+        });
+      }
+
+      // Update profile with verified email
+      const updatedProfile = await Profile.findOneAndUpdate(
         { userId: req.user.id },
-        { $set: { otpAttempts: attempts } }
-      );
+        {
+          $set: {
+            email: profile.pendingEmail,
+            emailVerified: true, // Fixed field name
+            emailVerifiedAt: new Date(),
+            updatedAt: new Date()
+          },
+          $unset: {
+            pendingEmail: 1,
+            emailVerificationOtp: 1,
+            emailVerificationOtpExpiry: 1,
+            emailVerificationOtpAttempts: 1,
+            emailVerificationOtpLastAttempt: 1
+          }
+        },
+        { new: true, runValidators: true }
+      ).select('-_id -userId');
 
-      const remainingAttempts = 5 - attempts;
-      return res.status(400).json({
-        success: false,
-        message: `Invalid verification code. ${remainingAttempts} attempts remaining.`
+      // Also update the User model
+      await User.findByIdAndUpdate(req.user.id, {
+        $set: {
+          emailVerified: true,
+          emailVerifiedAt: new Date()
+        }
+      });
+
+      return res.status(200).json({
+        success: true,
+        message: 'Email verified successfully',
+        profile: updatedProfile
       });
     }
 
-    // Determine if this is for email update or general verification
-    const updateData = {
-      emailVerified: true,
-      $unset: {
-        emailVerificationOtp: 1,
-        emailVerificationOtpExpiry: 1,
-        otpAttempts: 1,
-        otpLockedUntil: 1
-      }
-    };
-
-    // If there's a pending email, update the email
-    if (profile.pendingEmail) {
-      updateData.$set = { email: profile.pendingEmail };
-      updateData.$unset.pendingEmail = 1;
+    // If we reach here with tempToken but no matching registration was found
+    if (isTempTokenVerification) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid or expired verification code'
+      });
     }
 
-    // Mark email as verified and clear OTP
-    const updatedProfile = await Profile.findOneAndUpdate(
-      { userId: req.user.id },
-      updateData,
-      { new: true }
-    ).select('-__v -updatedAt -_id -userId'); // Exclude ID fields
-
-    const message = profile.pendingEmail 
-      ? 'Email updated and verified successfully'
-      : 'Email verified successfully';
-
-    res.status(200).json({
-      success: true,
-      message,
-      data: updatedProfile
+    // Regular flow - no tempToken and no registration found
+    return res.status(404).json({
+      success: false,
+      message: 'User not found or inactive'
     });
   } catch (error) {
-    console.error('Error verifying email:', error);
-    res.status(500).json({
+    console.error('Email verification error:', error);
+    return res.status(500).json({
       success: false,
       message: 'Internal server error'
     });
