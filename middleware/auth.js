@@ -32,7 +32,9 @@ const protect = async (req, res, next) => {
         });
       }
 
+      // Attach user and role to request
       req.user = user;
+      req.user.role = decoded.role; // Ensure role comes from token
       next();
     } catch (error) {
       return res.status(401).json({

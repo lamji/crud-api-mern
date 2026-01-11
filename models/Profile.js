@@ -31,6 +31,22 @@ const phoneSchema = new mongoose.Schema({
   isPrimary: {
     type: Boolean,
     default: false
+  },
+  isVerified: {
+    type: Boolean,
+    default: false
+  }
+});
+
+// Custom validation to ensure only one primary phone per profile
+phoneSchema.pre('save', async function() {
+  if (this.isPrimary) {
+    // Find the parent profile and unset other primary phones
+    const Profile = mongoose.model('Profile');
+    await Profile.updateOne(
+      { 'phones._id': { $ne: this._id } },
+      { $set: { 'phones.$[].isPrimary': false } }
+    );
   }
 });
 
