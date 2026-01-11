@@ -2,6 +2,8 @@
  * Core Dependencies
  */
 const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -26,6 +28,64 @@ const errorHandler = require('./middleware/errorHandler');
  * Initialize Express Application
  */
 const app = express();
+const server = http.createServer(app);
+
+/**
+ * Initialize Socket.io
+ */
+const io = new Server(server, {
+  cors: {
+    origin: true,
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+  transports: ["websocket", "polling"],
+});
+
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true }));
+
+/**
+ * HTTP → SOCKET BRIDGE
+ */
+app.post("/emit", (req, res) => {
+  const { event, payload } = req.body;
+  console.log(`📡 Bridge Received: ${event}`, payload);
+  
+  // 1. Global Broadcast
+  io.emit(event, payload);
+  console.log(`📢 Global Broadcast: ${event}`);
+
+  // 2. Room-specific Broadcast
+  const targetUserId = payload.userId || (payload.data && payload.data.userId);
+  if (targetUserId) {
+    io.to(`user:${targetUserId}`).emit(event, payload);
+    console.log(`🎯 Room Broadcast to user:${targetUserId}: ${event}`);
+  }
+  
+  res.json({ success: true });
+});
+
+/**
+ * Socket.io Connection Logic
+ */
+io.on("connection", (socket) => {
+  console.log("🟢 Client connected:", socket.id);
+
+  socket.on("join", (userId) => {
+    socket.join(`user:${userId}`);
+    console.log(`✅ User ${userId} joined room: user:${userId}`);
+  });
+
+  socket.on("joinRoom", (roomName) => {
+    socket.join(roomName);
+    console.log(`✅ Socket ${socket.id} joined room: ${roomName}`);
+  });
+
+  socket.on("disconnect", (reason) => {
+    console.log("🔴 Client disconnected:", socket.id, "Reason:", reason);
+  });
+});
 
 /**
  * Security Middleware
@@ -68,28 +128,16 @@ const allowedOrigins = [
  * @see {@link https://github.com/expressjs/cors#configuration-options}
  */
 app.use(cors({
-  origin(origin, callback) {
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) return callback(null, true);
-    return callback(new Error('Not allowed by CORS'));
-  },
-  credentials: true // Enable credentials (cookies, authorization headers)
+  origin: true, // Allow all origins in development or use environment variable
+  credentials: true
 }));
-
-/**
- * Request Parsing Middleware
- * - json: Parse JSON payloads (max 10MB)
- * - urlencoded: Parse URL-encoded data with extended syntax
- */
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true }));
 
 /**
  * Database Connection
  * Connects to MongoDB using URI from environment variables or defaults to localhost
  * @see {@link https://mongoosejs.com/docs/connections.html}
  */
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/todo-app', {
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/todo-app', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
@@ -111,7 +159,7 @@ app.use('/api/todos', todoRoutes);
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     success: true,
-    message: 'Server is running',
+    message: 'Server is running with socket io',
     timestamp: new Date().toISOString()
   });
 });
@@ -140,6 +188,6 @@ app.use('*', (req, res) => {
  */
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
