@@ -1,4 +1,5 @@
 const Profile = require('../../models/Profile');
+const nodemailer = require('nodemailer');
 
 /**
  * @desc    Send email verification OTP
@@ -149,6 +150,119 @@ exports.sendEmailVerification = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Internal server error'
+    });
+  }
+};
+
+/**
+ * @desc    Resend OTP for email verification
+ * @route   POST /api/auth/opt-resend
+ * @access  Public
+ */
+exports.resendOtp = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const profile = await Profile.findOne({ email });
+
+    if (!profile) {
+      return res.status(404).json({
+        success: false,
+        message: 'Email not found'
+      });
+    }
+
+    // Rate limiting: Check for last sent OTP time (1 minute cooldown)
+    if (profile.otpLastSent && (Date.now() - profile.otpLastSent < 60000)) {
+      const remainingSeconds = Math.ceil((60000 - (Date.now() - profile.otpLastSent)) / 1000);
+      return res.status(429).json({
+        success: false,
+        message: `Please wait ${remainingSeconds} seconds before requesting another code.`
+      });
+    }
+
+    // Generate unique OTP using timestamp + random
+    const timestamp = Date.now().toString().slice(-3);
+    const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+    const otp = timestamp + random;
+    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes expiry
+
+    // Update profile with new OTP
+    await Profile.findOneAndUpdate(
+      { email },
+      {
+        $set: {
+          emailVerificationOtp: otp,
+          emailVerificationOtpExpiry: otpExpiry,
+          otpLastSent: Date.now()
+        }
+      }
+    );
+
+    // Send email using Nodemailer
+    let transporter;
+    if (process.env.EMAIL_SERVICE === 'gmail') {
+      transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS
+        }
+      });
+    } else if (process.env.EMAIL_SERVICE === 'ethereal') {
+      const testAccount = await nodemailer.createTestAccount();
+      transporter = nodemailer.createTransport({
+        host: 'smtp.ethereal.email',
+        port: 587,
+        secure: false,
+        auth: {
+          user: testAccount.user,
+          pass: testAccount.pass
+        }
+      });
+    } else if (process.env.EMAIL_SERVICE === 'namecheap') {
+      transporter = nodemailer.createTransport({
+        host: 'mail.privateemail.com',
+        port: 587, // Use 587 for TLS/STARTTLS
+        secure: false, // false for TLS/STARTTLS
+        auth: {
+          user: process.env.EMAIL_USER, // yourname@yourdomain.com
+          pass: process.env.EMAIL_PASS // your_private_email_password
+        }
+      });
+    } else {
+      transporter = nodemailer.createTransport({
+        host: process.env.EMAIL_HOST,
+        port: process.env.EMAIL_PORT || 587,
+        secure: process.env.EMAIL_SECURE === 'true',
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS
+        }
+      });
+    }
+
+    const emailContent = {
+      from: `"HotShop" <${process.env.EMAIL_FROM || process.env.EMAIL_USER}>`,
+      to: email,
+      subject: 'Your OTP Code',
+      html: `<p>Your OTP code is <strong>${otp}</strong>. It will expire in 10 minutes.</p>`
+    };
+
+    const result = await transporter.sendMail(emailContent);
+
+    if (process.env.EMAIL_SERVICE === 'ethereal' && result.messageId) {
+      console.log('Preview URL:', nodemailer.getTestMessageUrl(result));
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'OTP sent successfully'
+    });
+  } catch (error) {
+    console.error('Error resending OTP:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to resend OTP. Please try again later.'
     });
   }
 };

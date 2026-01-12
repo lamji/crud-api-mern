@@ -49,4 +49,15 @@ router.post('/verify-email', [
     .withMessage('Temporary token is required for registration verification')
 ], profileController.verifyEmail);
 
+// @desc    Resend OTP
+// @route   POST /auth/opt-resend
+// @access  Public
+router.post('/opt-resend', [
+  body('email')
+    .notEmpty()
+    .withMessage('Email is required')
+    .isEmail()
+    .withMessage('Invalid email format')
+], profileController.resendOtp);
+
 module.exports = router;

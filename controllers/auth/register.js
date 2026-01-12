@@ -62,9 +62,7 @@ async function register(req, res, next) {
     global.pendingRegistrations = global.pendingRegistrations || {};
     global.pendingRegistrations[email] = pendingUser;
 
-    // Log OTP for development (in production, send actual email)
-    console.log(`Registration OTP for ${email}: ${otp}`);
-    console.log(`OTP expires at: ${otpExpiry.toISOString()}`);
+
 
     // Send email using Nodemailer (exact same as updateEmail)
     try {
