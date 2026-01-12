@@ -6,6 +6,7 @@ const { updateProfile } = require('./updateProfile');
 const { updateEmail } = require('./updateEmail');
 const { sendEmailVerification } = require('./sendEmailVerification');
 const { verifyEmail } = require('./verifyEmail');
+const { resendOtp } = require('./sendEmailVerification');
 const { addPhone } = require('./addPhone');
 const { updatePhone } = require('./updatePhone');
 const { deletePhone } = require('./deletePhone');
@@ -22,6 +23,7 @@ module.exports = {
   updateEmail,
   sendEmailVerification,
   verifyEmail,
+  resendOtp,
   addPhone,
   updatePhone,
   deletePhone,
