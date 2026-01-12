@@ -42,6 +42,10 @@ async function register(req, res, next) {
     const otp = timestamp + random;
     const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes expiry
 
+    // Generate unique oneSignalUserId (yy,mm,dd,hh,mm,ss,ms)
+    const now = new Date();
+    const oneSignalUserId = `${now.getFullYear().toString().slice(-2)}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}${now.getSeconds().toString().padStart(2, '0')}${now.getMilliseconds().toString().padStart(3, '0')}`;
+
     // Store registration data with OTP in User model as pending registration
     const pendingUser = {
       name,
@@ -49,6 +53,7 @@ async function register(req, res, next) {
       password, // Will be hashed when actually creating user
       emailVerificationOtp: otp,
       emailVerificationOtpExpiry: otpExpiry,
+      oneSignalUserId,
       isPendingVerification: true,
       createdAt: new Date()
     };
@@ -153,8 +158,6 @@ async function register(req, res, next) {
       return res.status(500).json({
         success: false,
         message: 'Failed to send verification email. Please try again later.',
-        // In development, include OTP for testing
-        ...(process.env.NODE_ENV === 'development' && { otp })
       });
     }
 
@@ -170,8 +173,6 @@ async function register(req, res, next) {
       message: 'Verification code sent to your email. Please verify to complete registration.',
       email: email, // Return email for verification step
       tempToken, // Temporary token for email verification only
-      // In development, include OTP for testing
-      ...(process.env.NODE_ENV === 'development' && { otp })
     });
   } catch (error) {
     return next(error);

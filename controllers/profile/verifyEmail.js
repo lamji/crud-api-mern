@@ -72,13 +72,29 @@ exports.verifyEmail = async (req, res) => {
 
             // Create corresponding profile document using service
             const { createDefaultProfile } = require('../../utils/profileService');
-            await createDefaultProfile(newUser, pendingReg.name, session);
+            await createDefaultProfile(newUser, pendingReg.name, pendingReg.oneSignalUserId, session);
 
             await session.commitTransaction();
             session.endSession();
 
             // Clean up pending registration
             delete global.pendingRegistrations[regEmail];
+
+            // Send welcome notification using OneSignal
+            if (pendingReg.oneSignalUserId) {
+              try {
+                const { sendTargetedNotification } = require('../../utils/notificationService');
+                await sendTargetedNotification(
+                  pendingReg.oneSignalUserId,
+                  'Welcome to HotShop!',
+                  `Hi ${pendingReg.name}, your registration is complete. Welcome aboard!`,
+                  { type: 'promotion', status: 'success' }
+                );
+              } catch (notifError) {
+                console.error('Failed to send welcome notification:', notifError);
+                // Don't fail the registration if notification fails
+              }
+            }
 
             // Generate JWT token with role included
             const token = generateToken({ 

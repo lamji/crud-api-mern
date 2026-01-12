@@ -66,89 +66,9 @@ async function login(req, res, next) {
   }
 }
 
-/**
- * Get current authenticated user profile
- * - Uses lean queries for performance
- * - Optimized for high-volume requests
- */
-async function getMe(req, res, next) {
-  try {
-    const userId = req.user.id;
-    
-    // Use lean query for better performance
-    const user = await User.findById(userId).lean();
-    
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found'
-      });
-    }
 
-    const userData = {
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      lastLogin: user.lastLogin,
-      createdAt: user.createdAt,
-    };
 
-    return res.status(200).json({
-      success: true,
-      user: userData,
-    });
-  } catch (error) {
-    return next(error);
-  }
-}
 
-/**
- * Update user profile
- * - Validates optional name/email
- * - Uses atomic findByIdAndUpdate for concurrency safety
- * - Optimized for high-volume requests
- */
-async function updateProfile(req, res, next) {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array(),
-      });
-    }
-
-    const { name, email } = req.body;
-    const updateFields = {};
-
-    if (name) updateFields.name = name;
-    if (email) updateFields.email = email;
-
-    // Atomic update for concurrency safety
-    const user = await User.findByIdAndUpdate(
-      req.user.id,
-      updateFields,
-      { new: true, runValidators: true }
-    ).lean();
-
-    const userData = {
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      lastLogin: user.lastLogin,
-      createdAt: user.createdAt,
-    };
-
-    return res.status(200).json({
-      success: true,
-      message: 'Profile updated successfully',
-      user: userData,
-    });
-  } catch (error) {
-    return next(error);
-  }
-}
 
 /**
  * Handle guest login
@@ -222,8 +142,6 @@ async function guestLogin(req, res, next) {
 module.exports = {
   register,
   login,
-  getMe,
-  updateProfile,
   guestLogin,
   logout,
 };
