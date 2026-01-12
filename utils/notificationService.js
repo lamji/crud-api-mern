@@ -9,15 +9,19 @@ const fetch = require('node-fetch');
  */
 async function sendTargetedNotification(oneSignalUserId, title, message, data = {}) {
   try {
+    console.log('sendTargetedNotification called with:', { oneSignalUserId, title });
     if (!process.env.ONE_SIGNAL_APP_ID || !process.env.ONE_SIGNAL_API_KEY) {
-      console.warn('OneSignal credentials missing. Skipping notification.');
+      console.warn('OneSignal credentials missing:', { 
+        appId: !!process.env.ONE_SIGNAL_APP_ID, 
+        apiKey: !!process.env.ONE_SIGNAL_API_KEY 
+      });
       return;
     }
 
     const options = {
       method: 'POST',
       headers: {
-        'Authorization': `Key ${process.env.ONE_SIGNAL_API_KEY}`,
+        'Authorization': `Bearer ${process.env.ONE_SIGNAL_API_KEY}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({

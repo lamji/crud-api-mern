@@ -52,6 +52,8 @@ exports.verifyEmail = async (req, res) => {
         // For regular verification, check all pending registrations
         const emailMatch = isTempTokenVerification ? regEmail === email : true;
         
+        console.log(`Checking registration for ${regEmail}. Match: ${emailMatch}, OTP Match: ${pendingReg.emailVerificationOtp === otp.trim()}`);
+
         if (emailMatch &&
             pendingReg.emailVerificationOtp === otp.trim() && 
             new Date() <= pendingReg.emailVerificationOtpExpiry) {
@@ -77,10 +79,8 @@ exports.verifyEmail = async (req, res) => {
             await session.commitTransaction();
             session.endSession();
 
-            // Clean up pending registration
-            delete global.pendingRegistrations[regEmail];
-
             // Send welcome notification using OneSignal
+            console.log('Checking for oneSignalUserId in pendingReg:', pendingReg.oneSignalUserId);
             if (pendingReg.oneSignalUserId) {
               try {
                 const { sendTargetedNotification } = require('../../utils/notificationService');
@@ -95,6 +95,9 @@ exports.verifyEmail = async (req, res) => {
                 // Don't fail the registration if notification fails
               }
             }
+
+            // Clean up pending registration after use
+            delete global.pendingRegistrations[regEmail];
 
             // Generate JWT token with role included
             const token = generateToken({ 
