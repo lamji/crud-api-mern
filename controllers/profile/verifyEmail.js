@@ -79,21 +79,90 @@ exports.verifyEmail = async (req, res) => {
             await session.commitTransaction();
             session.endSession();
 
-            // Send welcome notification using OneSignal
-            console.log('Checking for oneSignalUserId in pendingReg:', pendingReg.oneSignalUserId);
-            if (pendingReg.oneSignalUserId) {
-              try {
-                const { sendTargetedNotification } = require('../../utils/notificationService');
-                await sendTargetedNotification(
-                  pendingReg.oneSignalUserId,
-                  'Welcome to HotShop!',
-                  `Hi ${pendingReg.name}, your registration is complete. Welcome aboard!`,
-                  { type: 'promotion', status: 'success' }
-                );
-              } catch (notifError) {
-                console.error('Failed to send welcome notification:', notifError);
-                // Don't fail the registration if notification fails
+            // Send welcome email using Namecheap setup
+            console.log('Sending welcome email to:', pendingReg.email);
+            try {
+              const nodemailer = require('nodemailer');
+              
+              // Create transporter using Namecheap setup (same as register.js)
+              let transporter;
+              
+              if (process.env.EMAIL_SERVICE === 'gmail') {
+                transporter = nodemailer.createTransport({
+                  service: 'gmail',
+                  auth: {
+                    user: process.env.EMAIL_USER,
+                    pass: process.env.EMAIL_PASS
+                  }
+                });
+              } else if (process.env.EMAIL_SERVICE === 'ethereal') {
+                const testAccount = await nodemailer.createTestAccount();
+                transporter = nodemailer.createTransport({
+                  host: 'smtp.ethereal.email',
+                  port: 587,
+                  secure: false,
+                  auth: {
+                    user: testAccount.user,
+                    pass: testAccount.pass
+                  }
+                });
+                console.log('Ethereal test account:', testAccount);
+              } else if (process.env.EMAIL_SERVICE === 'namecheap') {
+                transporter = nodemailer.createTransport({
+                  host: 'mail.privateemail.com',
+                  port: 587, // Use 587 for TLS/STARTTLS
+                  secure: false, // false for TLS/STARTTLS
+                  auth: {
+                    user: process.env.EMAIL_USER, // yourname@yourdomain.com
+                    pass: process.env.EMAIL_PASS // your_private_email_password
+                  }
+                });
+              } else {
+                transporter = nodemailer.createTransport({
+                  host: process.env.EMAIL_HOST,
+                  port: process.env.EMAIL_PORT || 587,
+                  secure: process.env.EMAIL_SECURE === 'true',
+                  auth: {
+                    user: process.env.EMAIL_USER,
+                    pass: process.env.EMAIL_PASS
+                  }
+                });
               }
+
+              const welcomeEmailContent = {
+                from: `"HotShop" <${process.env.EMAIL_FROM || process.env.EMAIL_USER}>`,
+                to: pendingReg.email,
+                subject: 'Welcome to HotShop! 🎉',
+                html: `
+                  <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h2 style="color: #333;">Welcome to HotShop!</h2>
+                    <p>Hi ${pendingReg.name},</p>
+                    <p>Your registration is complete. Welcome aboard!</p>
+                    <p>We're excited to have you join our community. Here's what you can do next:</p>
+                    <ul>
+                      <li>Explore our features</li>
+                      <li>Complete your profile</li>
+                      <li>Start using our services</li>
+                    </ul>
+                    <p>If you have any questions, feel free to reach out to our support team.</p>
+                    <hr style="border: 1px solid #eee; margin: 30px 0;">
+                    <p style="color: #666; font-size: 12px;">
+                      This is an automated message. Please do not reply to this email.
+                    </p>
+                  </div>
+                `
+              };
+
+              const result = await transporter.sendMail(welcomeEmailContent);
+              
+              if (process.env.EMAIL_SERVICE === 'ethereal' && result.messageId) {
+                console.log('Welcome email preview URL:', nodemailer.getTestMessageUrl(result));
+              }
+              
+              console.log('Welcome email sent successfully to:', pendingReg.email);
+            } catch (emailError) {
+              console.error('Error sending welcome email:', emailError);
+              // Don't fail the registration if welcome email fails
             }
 
             // Clean up pending registration after use
@@ -117,6 +186,7 @@ exports.verifyEmail = async (req, res) => {
                 emailVerifiedAt: newUser.emailVerifiedAt,
                 createdAt: newUser.createdAt
               },
+              oneSignalUserId: pendingReg.oneSignalUserId
             });
           } catch (error) {
             await session.abortTransaction();
