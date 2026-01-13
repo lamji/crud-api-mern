@@ -67,7 +67,8 @@ exports.verifyEmail = async (req, res) => {
               email: pendingReg.email,
               password: pendingReg.password,
               emailVerified: true,
-              emailVerifiedAt: new Date()
+              emailVerifiedAt: new Date(),
+              oneSignalUserId: pendingReg.oneSignalUserId
             }], { session });
 
             const newUser = user[0];
@@ -186,7 +187,8 @@ exports.verifyEmail = async (req, res) => {
                 emailVerifiedAt: newUser.emailVerifiedAt,
                 createdAt: newUser.createdAt
               },
-              oneSignalUserId: pendingReg.oneSignalUserId
+              oneSignalUserId: pendingReg.oneSignalUserId,
+              userName:pendingReg.name
             });
           } catch (error) {
             await session.abortTransaction();
