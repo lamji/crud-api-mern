@@ -79,7 +79,7 @@ async function login(req, res, next) {
           lastLogin: new Date(),
           createdAt: user.createdAt,
           signupPlatform: userWithPlatform?.signupPlatform || 'web',
-          oneSignalUserId: (userWithPlatform?.signupPlatform || 'web') === 'web' 
+          createdAtKey: (userWithPlatform?.signupPlatform || 'web') === 'web' 
             ? null 
             : userWithPlatform?.oneSignalUserId || null,
         },
