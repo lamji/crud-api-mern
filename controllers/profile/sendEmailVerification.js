@@ -162,18 +162,32 @@ exports.sendEmailVerification = async (req, res) => {
 exports.resendOtp = async (req, res) => {
   try {
     const { email } = req.body;
-    const profile = await Profile.findOne({ email });
-
-    if (!profile) {
-      return res.status(404).json({
-        success: false,
-        message: 'Email not found'
-      });
+    
+    // First check if it's a pending registration in memory
+    const pendingRegistration = global.pendingRegistrations && global.pendingRegistrations[email];
+    
+    let targetRecord = null;
+    let isPendingRegistration = false;
+    
+    if (pendingRegistration) {
+      // This is a pending registration
+      targetRecord = pendingRegistration;
+      isPendingRegistration = true;
+    } else {
+      // Check existing profiles in database
+      const profile = await Profile.findOne({ email });
+      if (!profile) {
+        return res.status(404).json({
+          success: false,
+          message: 'Email not found'
+        });
+      }
+      targetRecord = profile;
     }
 
     // Rate limiting: Check for last sent OTP time (1 minute cooldown)
-    if (profile.otpLastSent && (Date.now() - profile.otpLastSent < 60000)) {
-      const remainingSeconds = Math.ceil((60000 - (Date.now() - profile.otpLastSent)) / 1000);
+    if (targetRecord.otpLastSent && (Date.now() - targetRecord.otpLastSent < 60000)) {
+      const remainingSeconds = Math.ceil((60000 - (Date.now() - targetRecord.otpLastSent)) / 1000);
       return res.status(429).json({
         success: false,
         message: `Please wait ${remainingSeconds} seconds before requesting another code.`
@@ -186,17 +200,25 @@ exports.resendOtp = async (req, res) => {
     const otp = timestamp + random;
     const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes expiry
 
-    // Update profile with new OTP
-    await Profile.findOneAndUpdate(
-      { email },
-      {
-        $set: {
-          emailVerificationOtp: otp,
-          emailVerificationOtpExpiry: otpExpiry,
-          otpLastSent: Date.now()
+    // Update the appropriate record with OTP
+    if (isPendingRegistration) {
+      // Update pending registration in memory
+      global.pendingRegistrations[email].emailVerificationOtp = otp;
+      global.pendingRegistrations[email].emailVerificationOtpExpiry = otpExpiry;
+      global.pendingRegistrations[email].otpLastSent = Date.now();
+    } else {
+      // Update existing profile in database
+      await Profile.findOneAndUpdate(
+        { email },
+        {
+          $set: {
+            emailVerificationOtp: otp,
+            emailVerificationOtpExpiry: otpExpiry,
+            otpLastSent: Date.now()
+          }
         }
-      }
-    );
+      );
+    }
 
     // Send email using Nodemailer
     let transporter;

@@ -35,6 +35,22 @@ const userSchema = new mongoose.Schema({
   },
   lastLogin: {
     type: Date
+  },
+  passwordResetOtp: {
+    type: String,
+    select: false // Don't include in queries by default
+  },
+  passwordResetOtpExpiry: {
+    type: Date,
+    select: false // Don't include in queries by default
+  },
+  passwordResetToken: {
+    type: String,
+    select: false // Don't include in queries by default
+  },
+  passwordResetTokenExpiry: {
+    type: Date,
+    select: false // Don't include in queries by default
   }
 }, {
   timestamps: true
