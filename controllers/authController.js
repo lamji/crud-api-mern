@@ -30,6 +30,28 @@ async function login(req, res, next) {
       // Find user and verify credentials
       const user = await User.findByCredentials(email, password);
 
+      // Detect current platform from User-Agent
+      const userAgent = req.headers['user-agent'] || '';
+      let currentPlatform = 'web'; // default
+      
+      if (userAgent.includes('wv') || userAgent.includes('WebView') || 
+          (userAgent.includes('Mobile') && userAgent.includes('wv'))) {
+        currentPlatform = 'webview'; // Web app wrapped in native WebView
+      } else if (userAgent.includes('Mobile') || userAgent.includes('Android') || 
+                 userAgent.includes('iPhone') || userAgent.includes('iPad')) {
+        currentPlatform = 'mobile'; // Native mobile app
+      }
+
+      // Update platform if it's different from original (only for non-web platforms)
+      if (currentPlatform !== 'web' && user.signupPlatform !== currentPlatform) {
+        await User.findByIdAndUpdate(
+          user._id,
+          { $set: { signupPlatform: currentPlatform } },
+          { new: true }
+        );
+        console.log(`Updated signupPlatform from ${user.signupPlatform} to ${currentPlatform} for user ${email}`);
+      }
+
       // Update lastLogin atomically for concurrency safety
       await User.findByIdAndUpdate(
         user._id,
@@ -37,7 +59,7 @@ async function login(req, res, next) {
         { new: true }
       );
 
-      // Fetch user with signupPlatform and oneSignalUserId
+      // Fetch user with updated signupPlatform and oneSignalUserId
       const userWithPlatform = await User.findById(user._id)
         .select('+signupPlatform +oneSignalUserId');
 
