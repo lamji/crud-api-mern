@@ -68,7 +68,8 @@ exports.verifyEmail = async (req, res) => {
               password: pendingReg.password,
               emailVerified: true,
               emailVerifiedAt: new Date(),
-              oneSignalUserId: pendingReg.oneSignalUserId
+              oneSignalUserId: pendingReg.oneSignalUserId,
+              signupPlatform: pendingReg.signupPlatform || 'web'
             }], { session });
 
             const newUser = user[0];

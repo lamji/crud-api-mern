@@ -51,6 +51,28 @@ const userSchema = new mongoose.Schema({
   passwordResetTokenExpiry: {
     type: Date,
     select: false // Don't include in queries by default
+  },
+  signupPlatform: {
+    type: String,
+    enum: ['web', 'mobile', 'webview'],
+    default: 'web'
+  },
+  oneSignalUserId: {
+    type: String,
+    select: false // Don't include in queries by default
+  },
+  emailVerificationOtp: {
+    type: String,
+    select: false // Don't include in queries by default
+  },
+  emailVerificationOtpExpiry: {
+    type: Date,
+    select: false // Don't include in queries by default
+  },
+  isPendingVerification: {
+    type: Boolean,
+    default: false,
+    select: false // Don't include in queries by default
   }
 }, {
   timestamps: true

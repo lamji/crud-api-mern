@@ -37,6 +37,10 @@ async function login(req, res, next) {
         { new: true }
       );
 
+      // Fetch user with signupPlatform and oneSignalUserId
+      const userWithPlatform = await User.findById(user._id)
+        .select('+signupPlatform +oneSignalUserId');
+
       const token = generateToken({ 
         id: user._id,
         role: user.role 
@@ -52,6 +56,8 @@ async function login(req, res, next) {
           role: user.role,
           lastLogin: new Date(),
           createdAt: user.createdAt,
+          signupPlatform: userWithPlatform?.signupPlatform || 'web',
+          oneSignalUserId: userWithPlatform?.oneSignalUserId,
         },
       });
     } catch (err) {

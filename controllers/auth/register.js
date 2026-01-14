@@ -46,6 +46,18 @@ async function register(req, res, next) {
     const now = new Date();
     const oneSignalUserId = `${now.getFullYear().toString().slice(-2)}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}${now.getSeconds().toString().padStart(2, '0')}${now.getMilliseconds().toString().padStart(3, '0')}`;
 
+    // Detect signup platform from User-Agent
+    const userAgent = req.headers['user-agent'] || '';
+    let signupPlatform = 'web'; // default
+    
+    if (userAgent.includes('wv') || userAgent.includes('WebView') || 
+        (userAgent.includes('Mobile') && userAgent.includes('wv'))) {
+      signupPlatform = 'webview'; // Web app wrapped in native WebView
+    } else if (userAgent.includes('Mobile') || userAgent.includes('Android') || 
+               userAgent.includes('iPhone') || userAgent.includes('iPad')) {
+      signupPlatform = 'mobile'; // Native mobile app
+    }
+
     // Store registration data with OTP in User model as pending registration
     const pendingUser = {
       name,
@@ -54,6 +66,7 @@ async function register(req, res, next) {
       emailVerificationOtp: otp,
       emailVerificationOtpExpiry: otpExpiry,
       oneSignalUserId,
+      signupPlatform,
       isPendingVerification: true,
       createdAt: new Date()
     };
@@ -171,6 +184,8 @@ async function register(req, res, next) {
       message: 'Verification code sent to your email. Please verify to complete registration.',
       email: email, // Return email for verification step
       tempToken, // Temporary token for email verification only
+      signupPlatform, // Include detected signup platform
+      oneSignalUserId, // Include OneSignal user ID
     });
   } catch (error) {
     return next(error);
