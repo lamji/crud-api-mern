@@ -79,7 +79,9 @@ async function login(req, res, next) {
           lastLogin: new Date(),
           createdAt: user.createdAt,
           signupPlatform: userWithPlatform?.signupPlatform || 'web',
-          oneSignalUserId: userWithPlatform?.oneSignalUserId,
+          oneSignalUserId: (userWithPlatform?.signupPlatform || 'web') === 'web' 
+            ? null 
+            : userWithPlatform?.oneSignalUserId || null,
         },
       });
     } catch (err) {

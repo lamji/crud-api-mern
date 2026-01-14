@@ -185,7 +185,7 @@ async function register(req, res, next) {
       email: email, // Return email for verification step
       tempToken, // Temporary token for email verification only
       signupPlatform, // Include detected signup platform
-      oneSignalUserId, // Include OneSignal user ID
+      oneSignalUserId: signupPlatform === 'web' ? null : oneSignalUserId, // Return null for web platforms
     });
   } catch (error) {
     return next(error);
