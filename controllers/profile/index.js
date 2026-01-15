@@ -14,11 +14,13 @@ const { resetOtpLock } = require('./resetOtpLock');
 const { addAddress } = require('./addAddress');
 const { updateAddress } = require('./updateAddress');
 const { deleteAddress } = require('./deleteAddress');
+const { updateProfileData } = require('./updateProfileData');
 
 // Re-export all profile functions for use in routes
 module.exports = {
   getProfile,
   updateProfile,
+  updateProfileData,
   updateFullName,
   updateEmail,
   sendEmailVerification,

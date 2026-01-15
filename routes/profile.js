@@ -191,6 +191,30 @@ router.post('/addresses', profileController.addAddress);
 router.put('/addresses/:addressId', profileController.updateAddress);
 
 /**
+ * @route   PUT /api/profile/update-profile
+ * @desc    Update user profile with phones and addresses
+ * @access  Private
+ */
+router.put('/update-profile', [
+  body('phones').isArray().withMessage('Phones must be an array'),
+  body('phones.*.id').notEmpty().withMessage('Phone ID is required'),
+  body('phones.*.number').isMobilePhone('any').withMessage('Invalid phone number format'),
+  body('phones.*.type').isIn(['mobile', 'home', 'work']).withMessage('Invalid phone type'),
+  body('phones.*.isPrimary').isBoolean().withMessage('isPrimary must be a boolean'),
+  body('addresses').isArray().withMessage('Addresses must be an array'),
+  body('addresses.*.id').notEmpty().withMessage('Address ID is required'),
+  body('addresses.*.type').isIn(['home', 'work', 'other']).withMessage('Invalid address type'),
+  body('addresses.*.isDefault').isBoolean().withMessage('isDefault must be a boolean'),
+  body('addresses.*.street').notEmpty().withMessage('Street address is required'),
+  body('addresses.*.barangay').notEmpty().withMessage('Barangay is required'),
+  body('addresses.*.city').notEmpty().withMessage('City is required'),
+  body('addresses.*.province').notEmpty().withMessage('Province is required'),
+  body('addresses.*.region').notEmpty().withMessage('Region is required'),
+  body('addresses.*.zipCode').matches(/^\d{4}$/).withMessage('ZIP code must be 4 digits'),
+  body('addresses.*.country').notEmpty().withMessage('Country is required')
+], profileController.updateProfileData);
+
+/**
  * @route   DELETE /api/profile/addresses/:addressId
  * @desc    Delete address
  * @access  Private
