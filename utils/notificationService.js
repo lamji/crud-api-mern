@@ -2,14 +2,14 @@ const fetch = require('node-fetch');
 
 /**
  * Sends a targeted push notification to a specific user via OneSignal
- * @param {string} oneSignalUserId - The unique ID stored in the user's profile
+ * @param {string} createdAtKey - The unique ID stored in the user's profile
  * @param {string} title - Notification title
  * @param {string} message - Notification message body
  * @param {Object} data - Optional additional data for the notification
  */
-async function sendTargetedNotification(oneSignalUserId, title, message, data = {}) {
+async function sendTargetedNotification(createdAtKey, title, message, data = {}) {
   try {
-    console.log('sendTargetedNotification called with:', { oneSignalUserId, title });
+    console.log('sendTargetedNotification called with:', { createdAtKey, title });
     if (!process.env.ONE_SIGNAL_APP_ID || !process.env.ONE_SIGNAL_API_KEY) {
       console.warn('OneSignal credentials missing:', { 
         appId: !!process.env.ONE_SIGNAL_APP_ID, 
@@ -27,7 +27,7 @@ async function sendTargetedNotification(oneSignalUserId, title, message, data = 
       body: JSON.stringify({
         app_id: process.env.ONE_SIGNAL_APP_ID,
         include_aliases: {
-          external_id: [oneSignalUserId]
+          external_id: [createdAtKey]
         },
         target_channel: 'push',
         headings: { en: title },
@@ -36,7 +36,7 @@ async function sendTargetedNotification(oneSignalUserId, title, message, data = 
       })
     };
 
-    console.log('Sending notification to user:', oneSignalUserId);
+    console.log('Sending notification to user:', createdAtKey);
     console.log('Notification options:', options);
 
     const response = await fetch('https://api.onesignal.com/notifications', options);
@@ -46,7 +46,7 @@ async function sendTargetedNotification(oneSignalUserId, title, message, data = 
       throw new Error(`OneSignal API Error: ${JSON.stringify(result)}`);
     }
 
-    console.log(`Notification sent to user ${oneSignalUserId}:`, result);
+    console.log(`Notification sent to user ${createdAtKey}:`, result);
     return result;
   } catch (error) {
     console.error('Error sending OneSignal notification:', error);

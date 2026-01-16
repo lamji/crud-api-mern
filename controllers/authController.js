@@ -1,5 +1,6 @@
 const { validationResult } = require('express-validator');
 const User = require('../models/User');
+const Cashier = require('../models/Cashier');
 const { generateToken } = require('../utils/jwt');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
@@ -27,52 +28,24 @@ async function login(req, res, next) {
     const { email, password } = req.body;
 
     try {
-      // Find user and verify credentials
-      const user = await User.findByCredentials(email, password);
-
-      // Detect current platform from User-Agent
-      const userAgent = req.headers['user-agent'] || '';
-      let currentPlatform = 'web'; // default
+      let user, userData, token;
       
-      if (userAgent.includes('wv') || userAgent.includes('WebView') || 
-          (userAgent.includes('Mobile') && userAgent.includes('wv'))) {
-        currentPlatform = 'webview'; // Web app wrapped in native WebView
-      } else if (userAgent.includes('Mobile') || userAgent.includes('Android') || 
-                 userAgent.includes('iPhone') || userAgent.includes('iPad')) {
-        currentPlatform = 'mobile'; // Native mobile app
-      }
-
-      // Update platform if it's different from original (only for non-web platforms)
-      if (currentPlatform !== 'web' && user.signupPlatform !== currentPlatform) {
+      // First try to find user by email
+      try {
+        user = await User.findByCredentials(email, password);
+        
+        // Update lastLogin atomically for concurrency safety
         await User.findByIdAndUpdate(
           user._id,
-          { $set: { signupPlatform: currentPlatform } },
+          { $set: { lastLogin: new Date() } },
           { new: true }
         );
-        console.log(`Updated signupPlatform from ${user.signupPlatform} to ${currentPlatform} for user ${email}`);
-      }
 
-      // Update lastLogin atomically for concurrency safety
-      await User.findByIdAndUpdate(
-        user._id,
-        { $set: { lastLogin: new Date() } },
-        { new: true }
-      );
+        // Fetch user with updated signupPlatform and createdAtKey
+        const userWithPlatform = await User.findById(user._id)
+          .select('+signupPlatform +createdAtKey');
 
-      // Fetch user with updated signupPlatform and oneSignalUserId
-      const userWithPlatform = await User.findById(user._id)
-        .select('+signupPlatform +oneSignalUserId');
-
-      const token = generateToken({ 
-        id: user._id,
-        role: user.role 
-      });
-
-      return res.status(200).json({
-        success: true,
-        message: 'Login successful',
-        token,
-        user: {
+        userData = {
           name: user.name,
           email: user.email,
           role: user.role,
@@ -81,8 +54,61 @@ async function login(req, res, next) {
           signupPlatform: userWithPlatform?.signupPlatform || 'web',
           createdAtKey: (userWithPlatform?.signupPlatform || 'web') === 'web' 
             ? null 
-            : userWithPlatform?.oneSignalUserId || null,
-        },
+            : userWithPlatform?.createdAtKey || null,
+        };
+        
+        token = generateToken({ 
+          id: user._id,
+          role: user.role 
+        });
+        
+      } catch (userError) {
+        // If user login fails, try cashier login
+        try {
+          const cashier = await Cashier.findByCredentials(email, password);
+          
+          // Check if cashier already has an active session
+          if (cashier.hasActiveSession()) {
+            return res.status(403).json({
+              success: false,
+              message: 'Cashier already logged in from another device. Please logout first.',
+              statusCode: 403,
+              activeSession: {
+                ipAddress: cashier.sessionInfo?.ipAddress,
+                loginTime: cashier.sessionInfo?.loginTime
+              }
+            });
+          }
+          
+          // Record login activity
+          await cashier.recordLogin(req.ip, req.get('User-Agent'));
+          
+          userData = {
+            name: cashier.name,
+            userName: cashier.userName,
+            role: process.env.CASHIER_KEY || 'cashier',
+            lastLogin: cashier.lastLogin,
+            createdAt: cashier.createdAt,
+            isActive: cashier.isActive
+          };
+          
+          token = generateToken({ 
+            id: cashier._id,
+            role: process.env.CASHIER_KEY || 'cashier',
+            type: 'cashier'
+          });
+          
+        } catch (cashierError) {
+          // Both user and cashier login failed
+          throw new Error('Invalid credentials');
+        }
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: 'Login successful',
+        token,
+        user: userData,
       });
     } catch (err) {
       // Keep original error handling behavior

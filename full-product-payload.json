@@ -1,0 +1,1306 @@
+{
+  "products": [
+    {
+      "imageSrc": "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=400&h=400&fit=crop",
+      "imageAlt": "Sample Product 1",
+      "title": "Stylish Fashion Sneakers",
+      "price": 59.99,
+      "originalPrice": 119.99,
+      "discountPercent": 50,
+      "rating": 4.5,
+      "reviewCount": 128,
+      "soldCount": 128,
+      "stock": 150,
+      "isSummerCollection": true,
+      "images": [
+        "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1519741497674-611481863552?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1519741497674-611481863552?w=800&h=800&fit=crop&sat=-50"
+      ],
+      "sizes": [
+        "US 7",
+        "US 8",
+        "US 9",
+        "US 10",
+        "US 11",
+        "US 12"
+      ],
+      "description": "Step up your style game with these premium fashion sneakers. Featuring a sleek design with comfortable cushioning and durable outsole, perfect for both casual outings and athletic activities.",
+      "categoryId": "cat-footwear",
+      "category": "Footwear",
+      "type": "flash",
+      "reviews": [
+        {
+          "id": "p1-r1",
+          "rating": 5,
+          "comment": "Very good quality! Fast delivery 👍",
+          "isVerified": true,
+          "createdAt": "2025-12-28T09:12:00Z",
+          "customerName": "John D."
+        },
+        {
+          "id": "p1-r2",
+          "rating": 4,
+          "comment": "Item is okay, packaging could be better.",
+          "isVerified": true,
+          "createdAt": "2025-12-20T14:45:00Z",
+          "customerName": "Sarah M."
+        },
+        {
+          "id": "p1-r3",
+          "rating": 5,
+          "comment": "Highly recommended seller!",
+          "isVerified": false,
+          "createdAt": "2025-11-02T08:30:00Z",
+          "customerName": "Mike R."
+        },
+        {
+          "id": "p1-r4",
+          "rating": 3,
+          "comment": "Average product. Works as expected.",
+          "isVerified": true,
+          "createdAt": "2025-08-15T16:20:00Z",
+          "customerName": "Emily L."
+        },
+        {
+          "id": "p1-r5",
+          "rating": 1,
+          "comment": "Received damaged item 😡",
+          "isVerified": true,
+          "createdAt": "2024-12-10T10:05:00Z",
+          "customerName": "Alex K."
+        },
+        {
+          "id": "p1-r6",
+          "rating": 5,
+          "isVerified": true,
+          "createdAt": "2025-12-30T11:00:00Z",
+          "customerName": "Lisa W."
+        },
+        {
+          "id": "p1-r7",
+          "rating": 4,
+          "comment": "Good for the price.",
+          "isVerified": false,
+          "createdAt": "2025-10-05T07:40:00Z",
+          "customerName": "Tom B."
+        }
+      ]
+    },
+    {
+      "imageSrc": "https://images.unsplash.com/photo-1460353581641-37baddab0fa2?w=400&h=400&fit=crop",
+      "imageAlt": "Sample Product 2",
+      "title": "Classic Men's Leather Shoes",
+      "price": 79.99,
+      "originalPrice": 159.99,
+      "discountPercent": 50,
+      "rating": 4.2,
+      "reviewCount": 89,
+      "stock": 85,
+      "isSummerCollection": true,
+      "images": [
+        "https://images.unsplash.com/photo-1460353581641-37baddab0fa2?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1525874684015-58379d421a52?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1552346154-21d32810aba3?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1549396557-7c6b3d4f1ab1?w=800&h=800&fit=crop"
+      ],
+      "sizes": [
+        "US 8",
+        "US 8.5",
+        "US 9",
+        "US 9.5",
+        "US 10",
+        "US 10.5",
+        "US 11",
+        "US 11.5"
+      ],
+      "description": "Timeless elegance meets modern comfort in these classic leather shoes. Crafted from genuine leather with a polished finish, ideal for business meetings and formal occasions.",
+      "categoryId": "cat-footwear",
+      "category": "Footwear",
+      "type": "flash",
+      "reviews": [
+        {
+          "id": "p2-r1",
+          "rating": 5,
+          "comment": "Excellent quality leather shoes!",
+          "isVerified": true,
+          "createdAt": "2025-12-25T10:15:00Z",
+          "customerName": "David S."
+        },
+        {
+          "id": "p2-r2",
+          "rating": 4,
+          "comment": "Good shoes but a bit stiff initially.",
+          "isVerified": true,
+          "createdAt": "2025-12-18T16:30:00Z",
+          "customerName": "Robert J."
+        },
+        {
+          "id": "p2-r3",
+          "rating": 5,
+          "comment": "Perfect for formal occasions!",
+          "isVerified": false,
+          "createdAt": "2025-11-15T09:20:00Z",
+          "customerName": "James L."
+        },
+        {
+          "id": "p2-r4",
+          "rating": 3,
+          "comment": "Average quality for the price.",
+          "isVerified": true,
+          "createdAt": "2025-09-10T14:45:00Z",
+          "customerName": "Michael T."
+        },
+        {
+          "id": "p2-r5",
+          "rating": 4,
+          "comment": "Comfortable after break-in period.",
+          "isVerified": true,
+          "createdAt": "2025-08-20T11:30:00Z",
+          "customerName": "William H."
+        }
+      ]
+    },
+    {
+      "imageSrc": "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=400&h=400&fit=crop",
+      "imageAlt": "Sample Product 3",
+      "title": "Casual Men's Sneakers",
+      "price": 24.99,
+      "originalPrice": 49.99,
+      "discountPercent": 50,
+      "rating": 4.7,
+      "reviewCount": 215,
+      "stock": 200,
+      "images": [
+        "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1519741497674-611481863552?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=800&h=800&fit=crop"
+      ],
+      "sizes": [
+        "US 6",
+        "US 7",
+        "US 8",
+        "US 9",
+        "US 10",
+        "US 11"
+      ],
+      "description": "Comfortable and versatile casual sneakers designed for everyday wear. Features breathable mesh upper and lightweight construction for all-day comfort.",
+      "categoryId": "cat-footwear",
+      "category": "Footwear",
+      "type": "new",
+      "soldCount": 128,
+      "reviews": [
+        {
+          "id": "p3-r1",
+          "rating": 5,
+          "comment": "Very comfortable sneakers!",
+          "isVerified": true,
+          "createdAt": "2025-12-22T08:45:00Z",
+          "customerName": "Chris P."
+        },
+        {
+          "id": "p3-r2",
+          "rating": 4,
+          "comment": "Good value for money.",
+          "isVerified": true,
+          "createdAt": "2025-12-15T13:20:00Z",
+          "customerName": "Kevin M."
+        },
+        {
+          "id": "p3-r3",
+          "rating": 5,
+          "comment": "Perfect for daily wear!",
+          "isVerified": false,
+          "createdAt": "2025-11-28T10:10:00Z",
+          "customerName": "Steve R."
+        },
+        {
+          "id": "p3-r4",
+          "rating": 4,
+          "comment": "Lightweight and breathable.",
+          "isVerified": true,
+          "createdAt": "2025-10-12T15:30:00Z",
+          "customerName": "Jason D."
+        }
+      ]
+    },
+    {
+      "imageSrc": "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=400&h=400&fit=crop",
+      "imageAlt": "Sample Product 4",
+      "title": "Elegant Emerald Green Evening Gown",
+      "price": 19.99,
+      "originalPrice": 39.99,
+      "discountPercent": 50,
+      "rating": 4,
+      "reviewCount": 62,
+      "stock": 45,
+      "images": [
+        "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1542060748-10c28b62716f?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1520975682031-cf8112ee7336?w=800&h=800&fit=crop"
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "description": "Stunning emerald green evening gown that exudes elegance and sophistication. Features a flattering silhouette with intricate details, perfect for formal events and special occasions.",
+      "categoryId": "cat-womens-clothing",
+      "category": "Women's Clothing",
+      "type": "new",
+      "soldCount": 128,
+      "reviews": [
+        {
+          "id": "p4-r1",
+          "rating": 5,
+          "comment": "Beautiful dress! Perfect fit.",
+          "isVerified": true,
+          "createdAt": "2025-12-20T18:30:00Z",
+          "customerName": "Maria G."
+        },
+        {
+          "id": "p4-r2",
+          "rating": 4,
+          "comment": "Elegant and well-made.",
+          "isVerified": true,
+          "createdAt": "2025-12-10T12:15:00Z",
+          "customerName": "Sophia L."
+        },
+        {
+          "id": "p4-r3",
+          "rating": 5,
+          "comment": "Stunning color and design!",
+          "isVerified": false,
+          "createdAt": "2025-11-05T14:40:00Z",
+          "customerName": "Emma W."
+        }
+      ]
+    },
+    {
+      "imageSrc": "https://images.unsplash.com/photo-1434389677669-e08b4cac3105?w=400&h=400&fit=crop",
+      "imageAlt": "Sample Product 5",
+      "title": "Woman with Hands on Hips",
+      "price": 59.99,
+      "originalPrice": 119.99,
+      "discountPercent": 50,
+      "rating": 4.5,
+      "reviewCount": 128,
+      "stock": 120,
+      "images": [
+        "https://images.unsplash.com/photo-1434389677669-e08b4cac3105?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1515468381879-40d0ded81016?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1520975682031-cf8112ee7336?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1542060748-10c28b62716f?w=800&h=800&fit=crop"
+      ],
+      "description": "Chic and stylish outfit featuring a modern design with comfortable fit. Perfect for casual outings and social gatherings, this piece combines fashion with functionality.",
+      "categoryId": "cat-womens-clothing",
+      "category": "Women's Clothing",
+      "type": "regular",
+      "reviews": [
+        {
+          "id": "p5-r1",
+          "rating": 5,
+          "comment": "Absolutely love this outfit! Fits perfectly.",
+          "isVerified": true,
+          "createdAt": "2025-12-15T10:30:00Z",
+          "customerName": "Jennifer A."
+        }
+      ]
+    },
+    {
+      "imageSrc": "https://images.unsplash.com/photo-1620012253295-c15cc3e65df4?w=400&h=400&fit=crop",
+      "imageAlt": "Men's Casual Shirt",
+      "title": "Premium Cotton Casual Shirt",
+      "price": 34.99,
+      "originalPrice": 69.99,
+      "discountPercent": 50,
+      "rating": 4.3,
+      "reviewCount": 156,
+      "stock": 95,
+      "images": [
+        "https://images.unsplash.com/photo-1620012253295-c15cc3e65df4?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&h=800&fit=crop"
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "description": "Crafted from premium cotton with a modern fit, this casual shirt combines comfort with style. Perfect for weekend outings or casual office days.",
+      "categoryId": "cat-mens-clothing",
+      "category": "Men's Clothing",
+      "type": "new",
+      "reviews": [
+        {
+          "id": "p6-r1",
+          "rating": 5,
+          "comment": "Great shirt! Very comfortable.",
+          "isVerified": true,
+          "createdAt": "2025-12-25T14:20:00Z",
+          "customerName": "Mark T."
+        },
+        {
+          "id": "p6-r2",
+          "rating": 4,
+          "comment": "Good fit and quality.",
+          "isVerified": true,
+          "createdAt": "2025-12-12T10:45:00Z",
+          "customerName": "Brian K."
+        },
+        {
+          "id": "p6-r3",
+          "rating": 4,
+          "comment": "Nice casual shirt.",
+          "isVerified": false,
+          "createdAt": "2025-11-20T13:15:00Z",
+          "customerName": "Ryan S."
+        }
+      ]
+    },
+    {
+      "imageSrc": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=400&h=400&fit=crop",
+      "imageAlt": "Men's Denim Jeans",
+      "title": "Classic Fit Denim Jeans",
+      "price": 44.99,
+      "originalPrice": 89.99,
+      "discountPercent": 50,
+      "rating": 4.6,
+      "reviewCount": 203,
+      "stock": 180,
+      "images": [
+        "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1542272604-787c3835535d?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&h=800&fit=crop"
+      ],
+      "sizes": [
+        "28",
+        "30",
+        "32",
+        "34",
+        "36",
+        "38"
+      ],
+      "description": "Classic straight-fit denim jeans made from durable denim fabric. Features traditional five-pocket styling and comfortable waistband.",
+      "categoryId": "cat-mens-clothing",
+      "category": "Men's Clothing",
+      "type": "flash",
+      "reviews": [
+        {
+          "id": "p7-r1",
+          "rating": 5,
+          "comment": "Great jeans! Perfect fit.",
+          "isVerified": true,
+          "createdAt": "2025-12-23T12:30:00Z",
+          "customerName": "John D."
+        },
+        {
+          "id": "p7-r2",
+          "rating": 4,
+          "comment": "Good quality denim.",
+          "isVerified": true,
+          "createdAt": "2025-12-14T15:45:00Z",
+          "customerName": "Mike R."
+        },
+        {
+          "id": "p7-r3",
+          "rating": 5,
+          "comment": "Classic style, very comfortable!",
+          "isVerified": false,
+          "createdAt": "2025-11-18T10:20:00Z",
+          "customerName": "Sarah L."
+        }
+      ]
+    },
+    {
+      "imageSrc": "https://images.unsplash.com/photo-1578632292335-df3abbb0d586?w=400&h=400&fit=crop",
+      "imageAlt": "Men's Polo Shirt",
+      "title": "Performance Polo Shirt",
+      "price": 29.99,
+      "originalPrice": 59.99,
+      "discountPercent": 50,
+      "rating": 4.4,
+      "reviewCount": 178,
+      "stock": 110,
+      "images": [
+        "https://images.unsplash.com/photo-1578632292335-df3abbb0d586?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&h=800&fit=crop"
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "description": "High-performance polo shirt with moisture-wicking technology. Perfect for sports activities or smart casual wear.",
+      "categoryId": "cat-mens-clothing",
+      "category": "Men's Clothing",
+      "type": "regular",
+      "reviews": [
+        {
+          "id": "p8-r1",
+          "rating": 5,
+          "comment": "Great quality polo shirt. Highly recommended!",
+          "isVerified": true,
+          "createdAt": "2025-12-20T09:15:00Z",
+          "customerName": "David K."
+        }
+      ]
+    },
+    {
+      "imageSrc": "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=400&h=400&fit=crop",
+      "imageAlt": "Women's Summer Dress",
+      "title": "Floral Summer Maxi Dress",
+      "price": 39.99,
+      "originalPrice": 79.99,
+      "discountPercent": 50,
+      "rating": 4.7,
+      "reviewCount": 245,
+      "images": [
+        "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=800&h=800&fit=crop"
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "description": "Beautiful floral maxi dress perfect for summer occasions. Features lightweight fabric and elegant flow design.",
+      "categoryId": "cat-womens-clothing",
+      "category": "Women's Clothing",
+      "type": "new",
+      "stock": 10,
+      "soldCount": 18
+    },
+    {
+      "imageSrc": "https://images.unsplash.com/photo-1539008835657-9e8e9680c956?w=400&h=400&fit=crop",
+      "imageAlt": "Women's Handbag",
+      "title": "Designer Leather Handbag",
+      "price": 89.99,
+      "originalPrice": 179.99,
+      "discountPercent": 50,
+      "rating": 4.8,
+      "reviewCount": 189,
+      "images": [
+        "https://images.unsplash.com/photo-1539008835657-9e8e9680c956?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1548036328-c9fa89be0605?w=800&h=800&fit=crop"
+      ],
+      "sizes": [
+        "One Size"
+      ],
+      "description": "Luxurious leather handbag with multiple compartments and gold-tone hardware. Perfect for both day and evening occasions.",
+      "categoryId": "cat-accessories",
+      "category": "Accessories",
+      "type": "flash",
+      "stock": 100,
+      "soldCount": 1280
+    },
+    {
+      "imageSrc": "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop",
+      "imageAlt": "Classic Watch",
+      "title": "Classic Analog Watch",
+      "price": 149.99,
+      "originalPrice": 299.99,
+      "discountPercent": 50,
+      "rating": 4.9,
+      "reviewCount": 267,
+      "images": [
+        "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1542496658-e33a6d0d50f6?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1533139482655-5dfbc6f7cdf3?w=800&h=800&fit=crop"
+      ],
+      "sizes": [
+        "One Size"
+      ],
+      "description": "Elegant analog watch with stainless steel case and leather strap. Features precise quartz movement and water resistance.",
+      "categoryId": "cat-accessories",
+      "category": "Accessories",
+      "type": "new",
+      "stock": 75,
+      "soldCount": 110
+    },
+    {
+      "imageSrc": "https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=400&h=400&fit=crop",
+      "imageAlt": "Sunglasses",
+      "title": "Polarized Sunglasses",
+      "price": 24.99,
+      "originalPrice": 49.99,
+      "discountPercent": 50,
+      "rating": 4.5,
+      "reviewCount": 134,
+      "images": [
+        "https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1511499767150-a1a227e6b692?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&h=800&fit=crop"
+      ],
+      "sizes": [
+        "One Size"
+      ],
+      "description": "Stylish polarized sunglasses with UV protection. Lightweight frame and scratch-resistant lenses for optimal comfort.",
+      "categoryId": "cat-accessories",
+      "category": "Accessories",
+      "type": "regular",
+      "stock": 0,
+      "soldCount": 10
+    },
+    {
+      "imageSrc": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop",
+      "imageAlt": "Wireless Headphones",
+      "title": "Premium Wireless Headphones",
+      "price": 79.99,
+      "originalPrice": 159.99,
+      "discountPercent": 50,
+      "rating": 4.6,
+      "reviewCount": 412,
+      "stock": 15,
+      "soldCount": 342,
+      "images": [
+        "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1487215078522-e3cc5089d5b9?w=800&h=800&fit=crop"
+      ],
+      "sizes": [
+        "One Size"
+      ],
+      "description": "High-quality wireless headphones with active noise cancellation and superior sound quality. 30-hour battery life.",
+      "categoryId": "cat-electronics",
+      "category": "Electronics",
+      "type": "flash"
+    },
+    {
+      "imageSrc": "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=400&fit=crop",
+      "imageAlt": "Smartphone",
+      "title": "Latest Smartphone Model",
+      "price": 299.99,
+      "originalPrice": 599.99,
+      "discountPercent": 50,
+      "rating": 4.7,
+      "reviewCount": 528,
+      "images": [
+        "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1546054454-926a40e2a8d5?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1605236453806-b25ea7ea303a?w=800&h=800&fit=crop"
+      ],
+      "sizes": [
+        "128GB",
+        "256GB",
+        "512GB"
+      ],
+      "description": "Cutting-edge smartphone with advanced camera system, powerful processor, and stunning display. 5G connectivity included.",
+      "categoryId": "cat-electronics",
+      "category": "Electronics",
+      "type": "new",
+      "stock": 75,
+      "soldCount": 89
+    },
+    {
+      "imageSrc": "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=400&fit=crop",
+      "imageAlt": "Laptop",
+      "title": "Ultra-thin Laptop",
+      "price": 499.99,
+      "originalPrice": 999.99,
+      "discountPercent": 50,
+      "rating": 4.8,
+      "reviewCount": 367,
+      "stock": 25,
+      "soldCount": 289,
+      "images": [
+        "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=800&h=800&fit=crop"
+      ],
+      "sizes": [
+        "8GB RAM",
+        "16GB RAM"
+      ],
+      "description": "Sleek and powerful laptop with high-resolution display and all-day battery life. Perfect for work and entertainment.",
+      "categoryId": "cat-electronics",
+      "category": "Electronics",
+      "type": "regular"
+    },
+    {
+      "imageSrc": "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&h=400&fit=crop",
+      "imageAlt": "Desk Lamp",
+      "title": "Modern LED Desk Lamp",
+      "price": 34.99,
+      "originalPrice": 69.99,
+      "discountPercent": 50,
+      "rating": 4.4,
+      "reviewCount": 189,
+      "images": [
+        "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&h=800&fit=crop"
+      ],
+      "sizes": [
+        "One Size"
+      ],
+      "description": "Elegant LED desk lamp with adjustable brightness and color temperature. Modern design complements any workspace.",
+      "categoryId": "cat-home-living",
+      "category": "Home & Living",
+      "type": "new",
+      "stock": 75,
+      "soldCount": 45
+    },
+    {
+      "imageSrc": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop",
+      "imageAlt": "Throw Pillows",
+      "title": "Decorative Throw Pillows Set",
+      "price": 24.99,
+      "originalPrice": 49.99,
+      "discountPercent": 50,
+      "rating": 4.3,
+      "reviewCount": 156,
+      "stock": 55,
+      "soldCount": 78,
+      "images": [
+        "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1519741497674-611481863552?w=800&h=800&fit=crop"
+      ],
+      "sizes": [
+        "Set of 2",
+        "Set of 4"
+      ],
+      "description": "Soft and stylish decorative throw pillows made from premium materials. Adds comfort and elegance to any living space.",
+      "categoryId": "cat-home-living",
+      "category": "Home & Living",
+      "type": "regular"
+    },
+    {
+      "imageSrc": "https://images.unsplash.com/photo-1549490349-8643362247b5?w=400&h=400&fit=crop",
+      "imageAlt": "Wall Art",
+      "title": "Abstract Wall Art Canvas",
+      "price": 44.99,
+      "originalPrice": 89.99,
+      "discountPercent": 50,
+      "rating": 4.6,
+      "reviewCount": 203,
+      "stock": 35,
+      "soldCount": 124,
+      "images": [
+        "https://images.unsplash.com/photo-1549490349-8643362247b5?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1536924940846-227afb31e2a5?w=800&h=800&fit=crop"
+      ],
+      "sizes": [
+        "Small",
+        "Medium",
+        "Large"
+      ],
+      "description": "Modern abstract wall art printed on high-quality canvas. Ready to hang and perfect for contemporary home decor.",
+      "categoryId": "cat-home-living",
+      "category": "Home & Living",
+      "type": "flash"
+    },
+    {
+      "imageSrc": "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=400&fit=crop",
+      "imageAlt": "Running Shoes",
+      "title": "Professional Running Shoes",
+      "price": 64.99,
+      "originalPrice": 129.99,
+      "discountPercent": 50,
+      "rating": 4.5,
+      "reviewCount": 289,
+      "stock": 65,
+      "soldCount": 198,
+      "images": [
+        "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=800&fit=crop"
+      ],
+      "sizes": [
+        "US 7",
+        "US 8",
+        "US 9",
+        "US 10",
+        "US 11",
+        "US 12"
+      ],
+      "description": "High-performance running shoes with advanced cushioning and breathable mesh upper. Perfect for marathon training and daily runs.",
+      "categoryId": "cat-footwear",
+      "category": "Footwear",
+      "type": "regular"
+    },
+    {
+      "imageSrc": "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=400&h=400&fit=crop",
+      "imageAlt": "Women's Blazer",
+      "title": "Classic Women's Blazer",
+      "price": 54.99,
+      "originalPrice": 109.99,
+      "discountPercent": 50,
+      "rating": 4.4,
+      "reviewCount": 167,
+      "stock": 42,
+      "soldCount": 134,
+      "images": [
+        "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1434389677669-e08b4cac3105?w=800&h=800&fit=crop"
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "description": "Elegant women's blazer perfect for professional settings. Features tailored fit and premium fabric for all-day comfort.",
+      "categoryId": "cat-womens-clothing",
+      "category": "Women's Clothing",
+      "type": "regular"
+    },
+    {
+      "imageSrc": "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=400&h=400&fit=crop",
+      "imageAlt": "Men's Jacket",
+      "title": "Men's Casual Jacket",
+      "price": 74.99,
+      "originalPrice": 149.99,
+      "discountPercent": 50,
+      "rating": 4.6,
+      "reviewCount": 234,
+      "stock": 38,
+      "soldCount": 167,
+      "images": [
+        "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1578632292335-df3abbb0d586?w=800&h=800&fit=crop"
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "description": "Versatile men's casual jacket with modern design. Lightweight yet warm, perfect for transitional weather and layering.",
+      "categoryId": "cat-mens-clothing",
+      "category": "Men's Clothing",
+      "type": "regular"
+    },
+    {
+      "imageSrc": "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&h=400&fit=crop",
+      "imageAlt": "Backpack",
+      "title": "Urban Backpack",
+      "price": 39.99,
+      "originalPrice": 79.99,
+      "discountPercent": 50,
+      "rating": 4.3,
+      "reviewCount": 198,
+      "stock": 70,
+      "soldCount": 156,
+      "images": [
+        "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&h=800&fit=crop"
+      ],
+      "sizes": [
+        "One Size"
+      ],
+      "description": "Stylish urban backpack with multiple compartments and laptop sleeve. Perfect for work, school, or weekend adventures.",
+      "categoryId": "cat-accessories",
+      "category": "Accessories",
+      "type": "regular"
+    },
+    {
+      "imageSrc": "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=400&h=400&fit=crop",
+      "imageAlt": "Tablet",
+      "title": "Smart Tablet Pro",
+      "price": 199.99,
+      "originalPrice": 399.99,
+      "discountPercent": 50,
+      "rating": 4.7,
+      "reviewCount": 445,
+      "stock": 30,
+      "soldCount": 267,
+      "images": [
+        "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&h=800&fit=crop"
+      ],
+      "sizes": [
+        "64GB",
+        "128GB",
+        "256GB"
+      ],
+      "description": "Powerful smart tablet with stunning display and professional-grade performance. Ideal for work, creativity, and entertainment.",
+      "categoryId": "cat-electronics",
+      "category": "Electronics",
+      "type": "regular"
+    },
+    {
+      "imageSrc": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop",
+      "imageAlt": "Desk Organizer",
+      "title": "Bamboo Desk Organizer",
+      "price": 29.99,
+      "originalPrice": 59.99,
+      "discountPercent": 50,
+      "rating": 4.5,
+      "reviewCount": 156,
+      "stock": 90,
+      "soldCount": 67,
+      "images": [
+        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=800&fit=crop"
+      ],
+      "sizes": [
+        "One Size"
+      ],
+      "description": "Eco-friendly bamboo desk organizer with multiple compartments. Keeps your workspace tidy and adds natural beauty to your desk.",
+      "categoryId": "cat-accessories",
+      "category": "Accessories",
+      "type": "regular"
+    },
+    {
+      "imageSrc": "https://images.unsplash.com/photo-1608198093002-ad8d8a19fb2c?w=400&h=400&fit=crop",
+      "imageAlt": "Hiking Boots",
+      "title": "Waterproof Hiking Boots",
+      "price": 84.99,
+      "originalPrice": 169.99,
+      "discountPercent": 50,
+      "rating": 4.8,
+      "reviewCount": 312,
+      "stock": 40,
+      "soldCount": 189,
+      "images": [
+        "https://images.unsplash.com/photo-1608198093002-ad8d8a19fb2c?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=800&h=800&fit=crop"
+      ],
+      "sizes": [
+        "US 7",
+        "US 8",
+        "US 9",
+        "US 10",
+        "US 11",
+        "US 12",
+        "US 13"
+      ],
+      "description": "Durable waterproof hiking boots with excellent ankle support and grip. Perfect for challenging trails and all-weather adventures.",
+      "categoryId": "cat-footwear",
+      "category": "Footwear",
+      "type": "regular",
+      "reviews": [
+        {
+          "id": "p25-r1",
+          "rating": 5,
+          "comment": "Excellent hiking boots! Completely waterproof.",
+          "isVerified": true,
+          "createdAt": "2025-12-19T15:30:00Z",
+          "customerName": "Trail Hiker"
+        },
+        {
+          "id": "p25-r2",
+          "rating": 5,
+          "comment": "Great ankle support, very comfortable on long hikes.",
+          "isVerified": true,
+          "createdAt": "2025-12-08T11:20:00Z",
+          "customerName": "Mountain Man"
+        }
+      ]
+    },
+    {
+      "imageSrc": "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&h=400&fit=crop",
+      "imageAlt": "Women's Top",
+      "title": "Casual Women's Top",
+      "price": 24.99,
+      "originalPrice": 49.99,
+      "discountPercent": 50,
+      "rating": 4.2,
+      "reviewCount": 189,
+      "stock": 60,
+      "soldCount": 94,
+      "images": [
+        "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=800&h=800&fit=crop"
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "description": "Comfortable casual women's top made from soft breathable fabric. Perfect for everyday wear and easy to style.",
+      "categoryId": "cat-womens-clothing",
+      "category": "Women's Clothing",
+      "type": "regular",
+      "reviews": [
+        {
+          "id": "p26-r1",
+          "rating": 4,
+          "comment": "Nice top, very comfortable and breathable.",
+          "isVerified": true,
+          "createdAt": "2025-12-14T12:45:00Z",
+          "customerName": "Fashion Girl"
+        },
+        {
+          "id": "p26-r2",
+          "rating": 4,
+          "comment": "Good quality fabric, fits as expected.",
+          "isVerified": false,
+          "createdAt": "2025-11-20T10:30:00Z",
+          "customerName": "Casual Wearer"
+        }
+      ]
+    },
+    {
+      "imageSrc": "https://images.unsplash.com/photo-1620012253295-c15cc3e65df4?w=400&h=400&fit=crop",
+      "imageAlt": "Men's Shorts",
+      "title": "Athletic Men's Shorts",
+      "price": 19.99,
+      "originalPrice": 39.99,
+      "discountPercent": 50,
+      "rating": 4.4,
+      "reviewCount": 267,
+      "stock": 80,
+      "soldCount": 143,
+      "images": [
+        "https://images.unsplash.com/photo-1620012253295-c15cc3e65df4?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&h=800&fit=crop"
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "description": "High-performance athletic shorts with moisture-wicking technology. Perfect for workouts, sports, and active lifestyle.",
+      "categoryId": "cat-mens-clothing",
+      "category": "Men's Clothing",
+      "type": "regular",
+      "reviews": [
+        {
+          "id": "p27-r1",
+          "rating": 5,
+          "comment": "Perfect for workouts! Moisture-wicking really works.",
+          "isVerified": true,
+          "createdAt": "2025-12-21T14:15:00Z",
+          "customerName": "Gym Rat"
+        },
+        {
+          "id": "p27-r2",
+          "rating": 4,
+          "comment": "Good athletic shorts, comfortable and lightweight.",
+          "isVerified": true,
+          "createdAt": "2025-12-03T09:40:00Z",
+          "customerName": "Fitness Fan"
+        }
+      ]
+    },
+    {
+      "imageSrc": "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=400&h=400&fit=crop",
+      "imageAlt": "Wallet",
+      "title": "Genuine Leather Wallet",
+      "price": 34.99,
+      "originalPrice": 69.99,
+      "discountPercent": 50,
+      "rating": 4.6,
+      "reviewCount": 223,
+      "stock": 45,
+      "soldCount": 178,
+      "images": [
+        "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1608198093002-ad8d8a19fb2c?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=800&h=800&fit=crop"
+      ],
+      "sizes": [
+        "One Size"
+      ],
+      "description": "Premium genuine leather wallet with multiple card slots and bill compartment. RFID blocking technology for security.",
+      "categoryId": "cat-accessories",
+      "category": "Accessories",
+      "type": "regular"
+    },
+    {
+      "imageSrc": "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=400&h=400&fit=crop",
+      "imageAlt": "Smart Watch",
+      "title": "Fitness Smart Watch",
+      "price": 89.99,
+      "originalPrice": 179.99,
+      "discountPercent": 50,
+      "rating": 4.5,
+      "reviewCount": 389,
+      "stock": 25,
+      "soldCount": 156,
+      "images": [
+        "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&h=800&fit=crop"
+      ],
+      "sizes": [
+        "One Size"
+      ],
+      "description": "Advanced fitness smart watch with heart rate monitoring, GPS tracking, and 7-day battery life. Water-resistant design.",
+      "categoryId": "cat-accessories",
+      "category": "Accessories",
+      "type": "regular"
+    },
+    {
+      "imageSrc": "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&h=400&fit=crop",
+      "imageAlt": "Coffee Maker",
+      "title": "Premium Coffee Maker",
+      "price": 59.99,
+      "originalPrice": 119.99,
+      "discountPercent": 0,
+      "rating": 4.7,
+      "reviewCount": 412,
+      "stock": 0,
+      "soldCount": 89,
+      "images": [
+        "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=800&fit=crop"
+      ],
+      "sizes": [
+        "One Size"
+      ],
+      "description": "Professional-grade coffee maker with programmable settings and thermal carafe. Brews perfect coffee every time.",
+      "categoryId": "cat-home-living",
+      "category": "Home & Living",
+      "type": "regular",
+      "reviews": [
+        {
+          "id": "p30-r1",
+          "rating": 5,
+          "comment": "Best coffee maker I've ever owned! Perfect brew every time.",
+          "isVerified": true,
+          "createdAt": "2025-12-22T08:30:00Z",
+          "customerName": "Coffee Lover"
+        },
+        {
+          "id": "p30-r2",
+          "rating": 4,
+          "comment": "Great coffee, easy to use and clean.",
+          "isVerified": false,
+          "createdAt": "2025-11-15T14:20:00Z",
+          "customerName": "Mark R."
+        }
+      ]
+    },
+    {
+      "imageSrc": "https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=400&h=400&fit=crop",
+      "imageAlt": "Summer Beach Hat",
+      "title": "Wide Brim Sun Hat",
+      "price": 24.99,
+      "originalPrice": 49.99,
+      "discountPercent": 50,
+      "rating": 4.6,
+      "reviewCount": 189,
+      "stock": 85,
+      "isSummerCollection": true,
+      "images": [
+        "https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1519741497674-611481863552?w=800&h=800&fit=crop"
+      ],
+      "sizes": [
+        "One Size",
+        "One Size+"
+      ],
+      "description": "Stylish wide brim sun hat perfect for beach days and outdoor activities. Provides excellent UV protection while keeping you cool.",
+      "categoryId": "cat-accessories",
+      "category": "Accessories",
+      "type": "new",
+      "reviews": [
+        {
+          "id": "p31-r1",
+          "rating": 5,
+          "comment": "Perfect sun hat! Great coverage and stylish.",
+          "isVerified": true,
+          "createdAt": "2025-12-25T11:10:00Z",
+          "customerName": "Beach Girl"
+        },
+        {
+          "id": "p31-r2",
+          "rating": 4,
+          "comment": "Good sun protection, fits well.",
+          "isVerified": true,
+          "createdAt": "2025-12-12T09:45:00Z",
+          "customerName": "Sun Lover"
+        }
+      ]
+    },
+    {
+      "imageSrc": "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=400&h=400&fit=crop",
+      "imageAlt": "Summer Sandals",
+      "title": "Beach Flip Flops",
+      "price": 15.99,
+      "originalPrice": 31.99,
+      "discountPercent": 50,
+      "rating": 4.4,
+      "reviewCount": 267,
+      "stock": 150,
+      "isSummerCollection": true,
+      "images": [
+        "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=800&h=800&fit=crop"
+      ],
+      "sizes": [
+        "US 6",
+        "US 7",
+        "US 8",
+        "US 9",
+        "US 10",
+        "US 11"
+      ],
+      "description": "Comfortable and lightweight beach flip flops with soft footbed. Perfect for pool days, beach walks, and casual summer outings.",
+      "categoryId": "cat-footwear",
+      "category": "Footwear",
+      "type": "flash",
+      "reviews": [
+        {
+          "id": "p32-r1",
+          "rating": 5,
+          "comment": "Super comfortable! Great for beach days.",
+          "isVerified": true,
+          "createdAt": "2025-12-20T10:15:00Z",
+          "customerName": "Sarah K."
+        },
+        {
+          "id": "p32-r2",
+          "rating": 4,
+          "comment": "Good quality flip flops, very lightweight.",
+          "isVerified": true,
+          "createdAt": "2025-12-08T14:30:00Z",
+          "customerName": "Chris M."
+        }
+      ]
+    },
+    {
+      "imageSrc": "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=400&h=400&fit=crop",
+      "imageAlt": "Summer Sunglasses",
+      "title": "Tropical Sunglasses",
+      "price": 32.99,
+      "originalPrice": 65.99,
+      "discountPercent": 50,
+      "rating": 4.7,
+      "reviewCount": 145,
+      "stock": 95,
+      "isSummerCollection": true,
+      "images": [
+        "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1511499767150-a1a227e6b692?w=800&h=800&fit=crop"
+      ],
+      "sizes": [
+        "One Size"
+      ],
+      "description": "Trendy tropical-style sunglasses with UV400 protection. Lightweight frame and polarized lenses for ultimate summer eye protection.",
+      "categoryId": "cat-accessories",
+      "category": "Accessories",
+      "type": "new",
+      "reviews": [
+        {
+          "id": "p33-r1",
+          "rating": 5,
+          "comment": "Love the tropical style! Great UV protection.",
+          "isVerified": true,
+          "createdAt": "2025-12-15T11:45:00Z",
+          "customerName": "Jessica R."
+        },
+        {
+          "id": "p33-r2",
+          "rating": 4,
+          "comment": "Stylish and functional. Good value for money.",
+          "isVerified": false,
+          "createdAt": "2025-11-28T09:20:00Z",
+          "customerName": "Ryan T."
+        }
+      ]
+    },
+    {
+      "imageSrc": "https://images.unsplash.com/photo-1586473219010-2ff574e13e85?w=400&h=400&fit=crop",
+      "imageAlt": "Summer Shorts",
+      "title": "Linen Beach Shorts",
+      "price": 28.99,
+      "originalPrice": 57.99,
+      "discountPercent": 50,
+      "rating": 4.5,
+      "reviewCount": 198,
+      "stock": 120,
+      "isSummerCollection": true,
+      "images": [
+        "https://images.unsplash.com/photo-1586473219010-2ff574e13e85?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1620012253295-c15cc3e65df4?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=800&h=800&fit=crop"
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "description": "Breathable linen beach shorts perfect for summer days. Lightweight fabric with elastic waistband for maximum comfort.",
+      "categoryId": "cat-mens-clothing",
+      "category": "Men's Clothing",
+      "type": "flash",
+      "reviews": [
+        {
+          "id": "p34-r1",
+          "rating": 5,
+          "comment": "Perfect for summer! Very comfortable and stylish.",
+          "isVerified": true,
+          "createdAt": "2025-12-22T14:30:00Z",
+          "customerName": "Michael B."
+        },
+        {
+          "id": "p34-r2",
+          "rating": 4,
+          "comment": "Good quality linen, fits well.",
+          "isVerified": true,
+          "createdAt": "2025-12-10T11:15:00Z",
+          "customerName": "Tom H."
+        }
+      ]
+    },
+    {
+      "imageSrc": "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=400&h=400&fit=crop",
+      "imageAlt": "Summer Tank Top",
+      "title": "Cotton Tank Top",
+      "price": 12.99,
+      "originalPrice": 25.99,
+      "discountPercent": 50,
+      "rating": 4.3,
+      "reviewCount": 234,
+      "stock": 200,
+      "isSummerCollection": true,
+      "images": [
+        "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=800&h=800&fit=crop",
+        "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=800&h=800&fit=crop"
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "description": "Soft cotton tank top ideal for hot summer days. Classic design with comfortable fit, perfect for layering or wearing alone.",
+      "categoryId": "cat-womens-clothing",
+      "category": "Women's Clothing",
+      "type": "regular"
+    }
+  ]
+}

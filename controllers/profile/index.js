@@ -15,6 +15,7 @@ const { addAddress } = require('./addAddress');
 const { updateAddress } = require('./updateAddress');
 const { deleteAddress } = require('./deleteAddress');
 const { updateProfileData } = require('./updateProfileData');
+const { getUserOrders } = require('./getUserOrders');
 
 // Re-export all profile functions for use in routes
 module.exports = {
@@ -34,5 +35,6 @@ module.exports = {
   resetOtpLock,
   addAddress,
   updateAddress,
-  deleteAddress
+  deleteAddress,
+  getUserOrders
 };

@@ -57,9 +57,11 @@ const userSchema = new mongoose.Schema({
     enum: ['web', 'mobile', 'webview'],
     default: 'web'
   },
-  oneSignalUserId: {
+  createdAtKey: {
     type: String,
-    select: false // Don't include in queries by default
+    default: function() {
+      return this.email + '_' + Date.now();
+    }
   },
   emailVerificationOtp: {
     type: String,
@@ -73,7 +75,11 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
     select: false // Don't include in queries by default
-  }
+  },
+  orders: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Order'
+  }]
 }, {
   timestamps: true
 });

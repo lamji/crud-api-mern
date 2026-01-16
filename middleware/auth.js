@@ -1,5 +1,6 @@
 const { verifyToken } = require('../utils/jwt');
 const User = require('../models/User');
+const Cashier = require('../models/Cashier');
 const BlacklistedToken = require('../models/BlacklistedToken');
 
 const protect = async (req, res, next) => {
@@ -32,8 +33,16 @@ const protect = async (req, res, next) => {
       // Verify token
       const decoded = verifyToken(token);
 
-      // Get user from token
-      const user = await User.findById(decoded.id);
+      // Get user from token - check both User and Cashier models
+      let user = null;
+      
+      if (decoded.type === 'cashier') {
+        // Look for cashier in Cashier model
+        user = await Cashier.findById(decoded.id);
+      } else {
+        // Look for regular user in User model
+        user = await User.findById(decoded.id);
+      }
 
       if (!user || !user.isActive) {
         return res.status(401).json({

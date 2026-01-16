@@ -11,7 +11,7 @@ const {
   deleteNotification
 } = require('../controllers/notificationController');
 
-// Apply authentication to all routes
+// Apply authentication to all routes (allow all authenticated users)
 router.use(protect);
 
 // POST /api/notifications - Create a new notification

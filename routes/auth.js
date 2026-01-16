@@ -5,14 +5,14 @@ const {
   register,
   logout,
   login,
-  getMe,
-  updateProfile,
   guestLogin,
   checkEmail,
   resetPassword,
   resetPasswordVerify,
 } = require('../controllers/authController');
-const { validateRegister, validateLogin } = require('../validators/authValidator');
+const { registerCashier } = require('../controllers/auth');
+const { validateRegister, validateLogin, validateCheckEmail, validateResetPassword, validateResetPasswordVerify, validateVerifyEmail, validateResendOtp } = require('../validators/authValidator');
+const { validateRegisterCashier } = require('../validators/cashierValidator');
 const profileController = require('../controllers/profile/index');
 
 const router = express.Router();
@@ -29,6 +29,11 @@ const router = express.Router();
 // @access  Public
 router.post('/register', validateRegister, register);
 
+// @desc    Register cashier (direct registration, no OTP required)
+// @route   POST /auth/register/cashier
+// @access  Public
+router.post('/register/cashier', validateRegisterCashier, registerCashier);
+
 // @desc    Login user
 // @route   POST /auth/login
 // @access  Public
@@ -42,89 +47,76 @@ router.post('/guest-login', guestLogin);
 // @desc    Check if email exists
 // @route   POST /auth/check-email
 // @access  Public
-router.post('/check-email', [
-  body('email')
-    .notEmpty()
-    .withMessage('Email is required')
-    .isEmail()
-    .withMessage('Invalid email format')
-    .normalizeEmail()
-], checkEmail);
+router.post('/check-email', validateCheckEmail, checkEmail);
 
 // @desc    Reset password
 // @route   POST /auth/reset-password
 // @access  Public
-router.post('/reset-password', [
-  body('email')
-    .notEmpty()
-    .withMessage('Email is required')
-    .isEmail()
-    .withMessage('Invalid email format')
-    .normalizeEmail(),
-  body('password')
-    .notEmpty()
-    .withMessage('Password is required')
-    .isLength({ min: 8 })
-    .withMessage('Password must be at least 8 characters long')
-    .matches(/[A-Z]/)
-    .withMessage('Password must contain at least one uppercase letter')
-    .matches(/[a-z]/)
-    .withMessage('Password must contain at least one lowercase letter')
-    .matches(/[0-9]/)
-    .withMessage('Password must contain at least one number'),
-  body('token')
-    .notEmpty()
-    .withMessage('Reset token is required')
-], resetPassword);
+router.post('/reset-password', validateResetPassword, resetPassword);
 
 // @desc    Verify OTP for password reset
 // @route   POST /auth/reset-password-verify
 // @access  Public
-router.post('/reset-password-verify', [
-  body('otp')
-    .notEmpty()
-    .withMessage('OTP is required')
-    .isLength({ min: 6, max: 6 })
-    .withMessage('OTP must be 6 digits')
-    .isNumeric()
-    .withMessage('OTP must contain only numbers'),
-  body('email')
-    .notEmpty()
-    .withMessage('Email is required')
-    .isEmail()
-    .withMessage('Invalid email format')
-    .normalizeEmail()
-], resetPasswordVerify);
+router.post('/reset-password-verify', validateResetPasswordVerify, resetPasswordVerify);
 
 // @desc    Logout user
 // @route   POST /auth/logout
 // @access  Private
 router.post('/logout', protect, logout);
 
+// @desc    Logout cashier (clear active session)
+// @route   POST /auth/logout/cashier
+// @access  Private (Cashier only)
+router.post('/logout/cashier', protect, async (req, res) => {
+  try {
+    // Check if user is a cashier
+    if (req.user?.role !== process.env.CASHIER_KEY) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. Cashier logout only.',
+        statusCode: 403
+      });
+    }
+
+    // Find cashier and clear session
+    const Cashier = require('../models/Cashier');
+    const cashier = await Cashier.findById(req.user.id);
+    
+    if (!cashier) {
+      return res.status(404).json({
+        success: false,
+        message: 'Cashier not found',
+        statusCode: 404
+      });
+    }
+
+    // Record logout to clear active session
+    await cashier.recordLogout(req.ip, req.get('User-Agent'));
+
+    res.status(200).json({
+      success: true,
+      message: 'Cashier logged out successfully',
+      statusCode: 200
+    });
+
+  } catch (error) {
+    console.error('Cashier logout error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      statusCode: 500
+    });
+  }
+});
+
 // @desc    Verify email with OTP (for registration with temporary token)
 // @route   POST /auth/verify-email
 // @access  Public (with temporary token)
-router.post('/verify-email', [
-  body('otp')
-    .notEmpty()
-    .withMessage('OTP is required')
-    .isLength({ min: 6, max: 6 })
-    .withMessage('OTP must be exactly 6 digits'),
-  body('tempToken')
-    .optional()
-    .notEmpty()
-    .withMessage('Temporary token is required for registration verification')
-], profileController.verifyEmail);
+router.post('/verify-email', validateVerifyEmail, profileController.verifyEmail);
 
 // @desc    Resend OTP
 // @route   POST /auth/opt-resend
 // @access  Public
-router.post('/opt-resend', [
-  body('email')
-    .notEmpty()
-    .withMessage('Email is required')
-    .isEmail()
-    .withMessage('Invalid email format')
-], profileController.resendOtp);
+router.post('/opt-resend', validateResendOtp, profileController.resendOtp);
 
 module.exports = router;

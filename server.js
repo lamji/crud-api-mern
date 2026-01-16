@@ -20,6 +20,9 @@ const todoRoutes = require('./routes/todos');
 const notificationRoutes = require('./routes/notifications');
 const testRoutes = require('./routes/test');
 const profileRoutes = require('./routes/profile');
+const cartRoutes = require('./routes/cart');
+const productRoutes = require('./routes/products');
+const posRoutes = require('./routes/pos');
 
 /**
  * Custom Middleware
@@ -156,6 +159,9 @@ app.use('/api/todos', todoRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/test', testRoutes);
 app.use('/api/profile', profileRoutes);
+app.use('/api/cart', cartRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/pos', posRoutes);
 
 /**
  * Health Check Endpoint

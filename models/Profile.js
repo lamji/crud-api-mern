@@ -128,7 +128,7 @@ const profileSchema = new mongoose.Schema({
   firstName: { type: String, required: true },
   lastName: { type: String, required: true },
   email: { type: String, required: true },
-  oneSignalUserId: { type: String, unique: true, sparse: true },
+  createdAtKey: { type: String, unique: true, sparse: true },
   phones: [phoneSchema],
   emailVerified: { type: Boolean, default: false },
   emailVerificationOtp: String,

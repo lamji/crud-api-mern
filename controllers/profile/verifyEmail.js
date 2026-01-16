@@ -68,7 +68,7 @@ exports.verifyEmail = async (req, res) => {
               password: pendingReg.password,
               emailVerified: true,
               emailVerifiedAt: new Date(),
-              oneSignalUserId: pendingReg.oneSignalUserId,
+              createdAtKey: pendingReg.createdAtKey,
               signupPlatform: pendingReg.signupPlatform || 'web'
             }], { session });
 
@@ -76,7 +76,7 @@ exports.verifyEmail = async (req, res) => {
 
             // Create corresponding profile document using service
             const { createDefaultProfile } = require('../../utils/profileService');
-            await createDefaultProfile(newUser, pendingReg.name, pendingReg.oneSignalUserId, session);
+            await createDefaultProfile(newUser, pendingReg.name, pendingReg.createdAtKey, session);
 
             await session.commitTransaction();
             session.endSession();
@@ -188,7 +188,7 @@ exports.verifyEmail = async (req, res) => {
                 emailVerifiedAt: newUser.emailVerifiedAt,
                 createdAt: newUser.createdAt
               },
-              oneSignalUserId: pendingReg.oneSignalUserId,
+              createdAtKey: pendingReg.createdAtKey,
               userName:pendingReg.name
             });
           } catch (error) {

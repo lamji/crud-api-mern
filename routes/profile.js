@@ -3,10 +3,23 @@ const { body } = require('express-validator');
 const { protect } = require('../middleware/auth');
 const profileController = require('../controllers/profile/index');
 
+// Middleware to check if user is admin (not cashier)
+const adminOnly = (req, res, next) => {
+  if (req.user?.role === process.env.CASHIER_KEY) {
+    return res.status(403).json({
+      success: false,
+      message: 'Access denied. Cashiers cannot access profile endpoints.',
+      statusCode: 403
+    });
+  }
+  next();
+};
+
 const router = express.Router();
 
-// All profile routes are protected
+// All profile routes are protected and block cashiers
 router.use(protect);
+router.use(adminOnly);
 
 /**
  * @route   GET /api/profile
@@ -220,5 +233,12 @@ router.put('/update-profile', [
  * @access  Private
  */
 router.delete('/addresses/:addressId', profileController.deleteAddress);
+
+/**
+ * @route   GET /api/profile/orders
+ * @desc    Get user's orders
+ * @access  Private
+ */
+router.get('/orders', profileController.getUserOrders);
 
 module.exports = router;

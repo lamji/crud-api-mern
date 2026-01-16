@@ -4,10 +4,10 @@ const Profile = require('../models/Profile');
  * Creates a default profile for a new user
  * @param {Object} user - The user object from the database
  * @param {string} fullName - The full name provided during registration
- * @param {string} oneSignalUserId - The generated oneSignalUserId
+ * @param {string} createdAtKey - The generated createdAtKey
  * @param {Object} [session] - Optional mongoose session for transactions
  */
-async function createDefaultProfile(user, fullName, oneSignalUserId, session = null) {
+async function createDefaultProfile(user, fullName, createdAtKey, session = null) {
   try {
     const firstName = fullName.split(' ')[0] || fullName;
     const lastName = fullName.split(' ').slice(1).join(' ') || ' '; // Default to empty string if no last name
@@ -17,7 +17,7 @@ async function createDefaultProfile(user, fullName, oneSignalUserId, session = n
       firstName,
       lastName,
       email: user.email,
-      oneSignalUserId,
+      createdAtKey,
       emailVerified: user.emailVerified || true,
       emailVerifiedAt: user.emailVerified ? new Date() : null,
       preferences: {
