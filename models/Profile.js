@@ -53,7 +53,7 @@ phoneSchema.pre('save', async function() {
 const paymentMethodSchema = new mongoose.Schema({
   type: {
     type: String,
-    enum: ['credit_card', 'debit_card', 'paypal', 'apple_pay', 'google_pay', 'gcash'],
+    enum: ['qrph', 'brankas', 'card', 'dob', 'billease', 'gcash', 'grab_pay', 'shopee_pay', 'paymaya', 'credit_card', 'debit_card', 'paypal', 'apple_pay', 'google_pay', 'online', 'cash'],
     required: true
   },
   isDefault: {
@@ -88,25 +88,68 @@ const shippingAddressSchema = new mongoose.Schema({
 const paymentMethodOrderSchema = new mongoose.Schema({
   type: {
     type: String,
-    enum: ['credit_card', 'paypal', 'apple_pay', 'google_pay'],
+    enum: ['qrph', 'brankas', 'card', 'dob', 'billease', 'gcash', 'grab_pay', 'shopee_pay', 'paymaya', 'credit_card', 'debit_card', 'paypal', 'apple_pay', 'google_pay', 'online', 'cash'],
     required: true
   },
+  source: {
+    type: mongoose.Schema.Types.Mixed,
+    required: false
+  },
+  billing: {
+    type: mongoose.Schema.Types.Mixed,
+    required: false
+  },
+  transaction: {
+    type: mongoose.Schema.Types.Mixed,
+    required: false
+  },
+  amounts: {
+    type: mongoose.Schema.Types.Mixed,
+    required: false
+  },
+  timestamps: {
+    type: mongoose.Schema.Types.Mixed,
+    required: false
+  },
+  status: {
+    type: String,
+    required: false
+  },
+  origin: {
+    type: String,
+    required: false
+  },
+  // Legacy fields for backward compatibility
   lastFour: String,
   brand: String,
   email: String,
-  paidAt: { type: Date, required: true },
-  transactionId: { type: String, required: true }
+  paidAt: { type: Date, required: false },
+  transactionId: { type: String, required: false }
 });
 
 const orderSchema = new mongoose.Schema({
-  orderNumber: { type: String, required: true },
-  date: { type: String, required: true },
-  orderDate: { type: Date, required: true },
+  orderId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Order',
+    required: false // Make optional for backward compatibility
+  },
+  orderNumber: {
+    type: String,
+    required: true
+  },
+  date: {
+    type: String,
+    required: true
+  },
+  orderDate: {
+    type: Date,
+    required: true
+  },
   shippedDate: Date,
   deliveredDate: Date,
   status: {
     type: String,
-    enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled'],
+    enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded'],
     required: true
   },
   totalAmount: { type: Number, required: true },

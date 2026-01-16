@@ -138,7 +138,7 @@ exports.updateEmail = async (req, res) => {
       }
 
       const emailContent = {
-        from: `"HotShop" <${process.env.EMAIL_FROM || process.env.EMAIL_USER}>`,
+        from: `"${process.env.STORE_NAME}" <${process.env.EMAIL_FROM || process.env.EMAIL_USER}>`,
         to: trimmedEmail,
         subject: 'Verify Your New Email Address',
         html: `

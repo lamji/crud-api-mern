@@ -129,7 +129,7 @@ async function register(req, res, next) {
       }
 
       const emailContent = {
-        from: `"HotShop" <${process.env.EMAIL_FROM || process.env.EMAIL_USER}>`,
+        from: `"${process.env.STORE_NAME}" <${process.env.EMAIL_FROM || process.env.EMAIL_USER}>`,
         to: email,
         subject: 'Verify Your Email Address - Complete Registration',
         html: `

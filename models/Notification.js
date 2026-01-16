@@ -41,6 +41,36 @@ const notificationSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  // Payment specific fields
+  paymentId: {
+    type: String,
+    trim: true
+  },
+  paymentStatus: {
+    type: String,
+    enum: ['pending', 'processing', 'paid', 'failed', 'refunded', 'cancelled'],
+    default: 'pending'
+  },
+  paymentMethod: {
+    type: String,
+    enum: ['gcash', 'maya', 'card', 'bank_transfer', 'cash_on_delivery', 'paypal'],
+    trim: true
+  },
+  paymentAmount: {
+    type: Number,
+    min: [0, 'Payment amount cannot be negative']
+  },
+  paymentFee: {
+    type: Number,
+    min: [0, 'Payment fee cannot be negative'],
+    default: 0
+  },
+  // Order specific fields
+  orderStatus: {
+    type: String,
+    enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded'],
+    default: 'pending'
+  },
   trackingNumber: {
     type: String,
     trim: true
@@ -87,5 +117,7 @@ const notificationSchema = new mongoose.Schema({
 notificationSchema.index({ userId: 1, createdAt: -1 });
 notificationSchema.index({ read: 1 });
 notificationSchema.index({ type: 1 });
+notificationSchema.index({ paymentStatus: 1 });
+notificationSchema.index({ orderStatus: 1 });
 
 module.exports = mongoose.model('Notification', notificationSchema);

@@ -132,12 +132,12 @@ exports.verifyEmail = async (req, res) => {
               }
 
               const welcomeEmailContent = {
-                from: `"HotShop" <${process.env.EMAIL_FROM || process.env.EMAIL_USER}>`,
+                from: `"${process.env.STORE_NAME}" <${process.env.EMAIL_FROM || process.env.EMAIL_USER}>`,
                 to: pendingReg.email,
-                subject: 'Welcome to HotShop! 🎉',
+                subject: `Welcome to ${process.env.STORE_NAME}! 🎉`,
                 html: `
                   <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                    <h2 style="color: #333;">Welcome to HotShop!</h2>
+                    <h2 style="color: #333;">Welcome to ${process.env.STORE_NAME}!</h2>
                     <p>Hi ${pendingReg.name},</p>
                     <p>Your registration is complete. Welcome aboard!</p>
                     <p>We're excited to have you join our community. Here's what you can do next:</p>

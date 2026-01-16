@@ -6,6 +6,14 @@ const orderItemSchema = new mongoose.Schema({
     ref: 'Product',
     required: [true, 'Product ID is required']
   },
+  productName: {
+    type: String,
+    required: false
+  },
+  productImage: {
+    type: String,
+    required: false
+  },
   quantity: {
     type: Number,
     required: [true, 'Quantity is required'],
@@ -22,11 +30,22 @@ const customerSchema = new mongoose.Schema({
   userid: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: [true, 'User ID is required']
+    required: false // Make optional for testing
+  },
+  name: {
+    type: String,
+    required: false
+  },
+  email: {
+    type: String,
+    required: false
   },
   address: {
-    type: String,
-    required: function() { return this.parent().deliveryType === 'delivery'; }
+    line1: { type: String, required: false },
+    city: { type: String, required: false },
+    state: { type: String, required: false },
+    postal_code: { type: String, required: false },
+    country: { type: String, required: false }
   },
   phonenumber: {
     type: String,
@@ -34,53 +53,7 @@ const customerSchema = new mongoose.Schema({
   }
 });
 
-const paymentMethodSchema = new mongoose.Schema({
-  type: {
-    type: String,
-    enum: ['cash', 'card', 'ewallet'],
-    required: [true, 'Payment type is required'],
-    default: 'cash'
-  },
-  details: {
-    // For card payments
-    cardType: {
-      type: String,
-      enum: ['visa', 'mastercard', 'amex', 'discover'],
-      required: function() { return this.parent().type === 'card'; }
-    },
-    lastFour: {
-      type: String,
-      required: function() { return this.parent().type === 'card'; },
-      validate: {
-        validator: function(v) {
-          return this.parent().type !== 'card' || /^\d{4}$/.test(v);
-        },
-        message: 'Last four digits must be exactly 4 digits'
-      }
-    },
-    // For e-wallet payments
-    provider: {
-      type: String,
-      enum: ['paypal', 'venmo', 'cashapp', 'zelle', 'applepay', 'googlepay'],
-      required: function() { return this.parent().type === 'ewallet'; }
-    },
-    accountEmail: {
-      type: String,
-      required: function() { return this.parent().type === 'ewallet'; },
-      validate: {
-        validator: function(v) {
-          return this.parent().type !== 'ewallet' || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
-        },
-        message: 'Valid email is required for e-wallet'
-      }
-    },
-    // Transaction reference
-    transactionId: {
-      type: String,
-      required: function() { return this.parent().type !== 'cash'; }
-    }
-  }
-});
+
 
 const orderSchema = new mongoose.Schema({
   id: {
@@ -93,10 +66,18 @@ const orderSchema = new mongoose.Schema({
     required: [true, 'Customer information is required']
   },
   items: [orderItemSchema],
-  total: {
+  subtotal: {
+    type: Number,
+    required: false
+  },
+  totalAmount: {
     type: Number,
     required: [true, 'Total amount is required'],
     min: [0, 'Total cannot be negative']
+  },
+  total: {
+    type: Number,
+    required: false // Keep for backward compatibility
   },
   deliveryType: {
     type: String,
@@ -111,7 +92,7 @@ const orderSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'received', 'preparing', 'shipped', 'delivered', 'cancelled'],
+    enum: ['pending', 'processing', 'received', 'preparing', 'shipped', 'delivered', 'cancelled', 'paid'],
     default: 'pending'
   },
   date: {
@@ -119,13 +100,48 @@ const orderSchema = new mongoose.Schema({
     default: Date.now
   },
   paymentMethod: {
-    type: paymentMethodSchema,
+    type: mongoose.Schema.Types.Mixed, // Accept both string and object
     required: [true, 'Payment method is required']
   },
   paymentStatus: {
     type: String,
     enum: ['pending', 'paid', 'failed', 'refunded'],
     default: 'pending'
+  },
+  paymentLink: {
+    id: { type: String, required: false },
+    checkoutUrl: { type: String, required: false },
+    reference: { type: String, required: false },
+    status: { type: String, required: false },
+    paid: { type: Boolean, default: false }
+  },
+  paymentId: {
+    type: String,
+    required: false
+  },
+  paymentReference: {
+    type: String,
+    required: false
+  },
+  paymentAmount: {
+    type: Number,
+    required: false
+  },
+  paymentFee: {
+    type: Number,
+    required: false
+  },
+  paymentNetAmount: {
+    type: Number,
+    required: false
+  },
+  paymentCurrency: {
+    type: String,
+    required: false
+  },
+  paidAt: {
+    type: Date,
+    required: false
   }
 }, {
   timestamps: true

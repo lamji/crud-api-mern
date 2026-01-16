@@ -6,6 +6,23 @@ const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const { register, logout } = require('./auth');
 
+// Helper function to format date as mm/dd/yy-hh-mm-ss
+const formatDate = (date = new Date()) => {
+  const d = new Date(date);
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const year = String(d.getFullYear()).slice(-2);
+  const hours = String(d.getHours()).padStart(2, '0');
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  const seconds = String(d.getSeconds()).padStart(2, '0');
+  return `${month}/${day}/${year}-${hours}-${minutes}-${seconds}`;
+};
+
+// Helper function for red error logging
+const logError = (message) => {
+  console.log(`\x1b[31m[${formatDate()}] - ${message}\x1b[0m`);
+};
+
 /**
  * Handle user login
  * - Validates request
@@ -15,9 +32,14 @@ const { register, logout } = require('./auth');
  * - Optimized for high-volume requests
  */
 async function login(req, res, next) {
+  const startTime = new Date();
+  console.log(`\n[${formatDate(startTime)}] - 🔐 LOGIN PROCESS STARTED | Endpoint: ${req.method} ${req.originalUrl} | Email: ${req.body.email} | IP: ${req.ip} | User-Agent: ${req.get('User-Agent')}`);
+  
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      logError('❌ Validation failed');
+      logError(`📋 Validation errors: ${JSON.stringify(errors.array())}`);
       return res.status(400).json({
         success: false,
         message: 'Validation failed',
@@ -26,13 +48,18 @@ async function login(req, res, next) {
     }
 
     const { email, password } = req.body;
+    console.log(`[${formatDate()}] - 🔍 Attempting login for email: ${email}`);
 
     try {
       let user, userData, token;
       
       // First try to find user by email
       try {
+        console.log(`[${formatDate()}] - 👤 Attempting user login for: ${email}`);
         user = await User.findByCredentials(email, password);
+        console.log(`[${formatDate()}] - ✅ User credentials verified successfully`);
+        console.log(`[${formatDate()}] - 👤 User found: ${user.name} (${user.email})`);
+        console.log(`[${formatDate()}] - 🔑 User role: ${user.role}`);
         
         // Update lastLogin atomically for concurrency safety
         await User.findByIdAndUpdate(
@@ -40,6 +67,7 @@ async function login(req, res, next) {
           { $set: { lastLogin: new Date() } },
           { new: true }
         );
+        console.log(`[${formatDate()}] - 📅 Updated lastLogin for user`);
 
         // Fetch user with updated signupPlatform and createdAtKey
         const userWithPlatform = await User.findById(user._id)
@@ -62,13 +90,39 @@ async function login(req, res, next) {
           role: user.role 
         });
         
+        console.log(`[${formatDate()}] - 🎫 JWT token generated for user`);
+        console.log(`[${formatDate()}] - ✅ USER LOGIN SUCCESSFUL`);
+        console.log(`[${formatDate()}] - ⏱️  Total login time: ${Date.now() - startTime.getTime()}ms`);
+        
       } catch (userError) {
-        // If user login fails, try cashier login
+        console.log(`[${formatDate()}] - ⚠️  User login failed`);
+        logError(`📝 User error: ${userError.message}`);
+        
+        // Only try cashier login if user doesn't exist (not if credentials are wrong)
+        if (userError.message === 'Invalid credentials') {
+          // User exists but wrong password - don't try cashier login
+          logError('❌ LOGIN FAILED - Invalid credentials');
+          logError(`⏱️  Failed login time: ${Date.now() - startTime.getTime()}ms`);
+          
+          return res.status(401).json({
+            success: false,
+            message: 'Invalid credentials',
+          });
+        }
+        
+        // User doesn't exist, try cashier login
         try {
+          console.log(`[${formatDate()}] - 💼 User not found, trying cashier login for: ${email}`);
           const cashier = await Cashier.findByCredentials(email, password);
+          console.log(`[${formatDate()}] - ✅ Cashier credentials verified successfully`);
+          console.log(`[${formatDate()}] - 💼 Cashier found: ${cashier.name} (${cashier.userName})`);
           
           // Check if cashier already has an active session
           if (cashier.hasActiveSession()) {
+            logError('🚫 Cashier login blocked - active session exists');
+            console.log(`[${formatDate()}] - 📍 Active session IP: ${cashier.sessionInfo?.ipAddress}`);
+            console.log(`[${formatDate()}] - ⏰ Active session since: ${cashier.sessionInfo?.loginTime}`);
+            
             return res.status(403).json({
               success: false,
               message: 'Cashier already logged in from another device. Please logout first.',
@@ -82,6 +136,7 @@ async function login(req, res, next) {
           
           // Record login activity
           await cashier.recordLogin(req.ip, req.get('User-Agent'));
+          console.log(`[${formatDate()}] - 📝 Cashier login activity recorded`);
           
           userData = {
             name: cashier.name,
@@ -98,12 +153,25 @@ async function login(req, res, next) {
             type: 'cashier'
           });
           
+          console.log(`[${formatDate()}] - 🎫 JWT token generated for cashier`);
+          console.log(`[${formatDate()}] - ✅ CASHIER LOGIN SUCCESSFUL`);
+          console.log(`[${formatDate()}] - ⏱️  Total login time: ${Date.now() - startTime.getTime()}ms`);
+          
         } catch (cashierError) {
+          console.log(`[${formatDate()}] - ⚠️  Cashier login failed`);
+          logError(`📝 Cashier error: ${cashierError.message}`);
+          logError('❌ USER NOT FOUND AND CASHIER LOGIN FAILED');
+          logError(`⏱️  Failed login time: ${Date.now() - startTime.getTime()}ms`);
+          
           // Both user and cashier login failed
           throw new Error('Invalid credentials');
         }
       }
 
+      const responseTime = Date.now() - startTime.getTime();
+      console.log(`[${formatDate()}] - 📤 Sending successful login response`);
+      console.log(`[${formatDate()}] - ⏱️  Total processing time: ${responseTime}ms`);
+      
       return res.status(200).json({
         success: true,
         message: 'Login successful',
@@ -112,12 +180,19 @@ async function login(req, res, next) {
       });
     } catch (err) {
       // Keep original error handling behavior
+      logError('❌ LOGIN FAILED - Invalid credentials');
+      logError(`⏱️  Failed login time: ${Date.now() - startTime.getTime()}ms`);
+      
       return res.status(401).json({
         success: false,
         message: 'Invalid credentials',
       });
     }
   } catch (error) {
+    logError('💥 LOGIN ERROR - Server error');
+    logError(`📝 Error: ${error.message}`);
+    logError(`⏱️  Error time: ${Date.now() - startTime.getTime()}ms`);
+    
     return next(error);
   }
 }
@@ -311,7 +386,7 @@ async function checkEmail(req, res, next) {
       }
 
       const emailContent = {
-        from: `"HotShop" <${process.env.EMAIL_FROM || process.env.EMAIL_USER}>`,
+        from: `"${process.env.STORE_NAME}" <${process.env.EMAIL_FROM || process.env.EMAIL_USER}>`,
         to: user.email,
         subject: 'Reset Your Password',
         html: `

@@ -100,7 +100,7 @@ exports.sendEmailVerification = async (req, res) => {
       }
 
       const emailContent = {
-        from: `"HotShop" <${process.env.EMAIL_FROM || process.env.EMAIL_USER}>`,
+        from: `"${process.env.STORE_NAME}" <${process.env.EMAIL_FROM || process.env.EMAIL_USER}>`,
         to: profile.email,
         subject: 'Verify Your Email Address',
         html: `
@@ -264,7 +264,7 @@ exports.resendOtp = async (req, res) => {
     }
 
     const emailContent = {
-      from: `"HotShop" <${process.env.EMAIL_FROM || process.env.EMAIL_USER}>`,
+      from: `"${process.env.STORE_NAME}" <${process.env.EMAIL_FROM || process.env.EMAIL_USER}>`,
       to: email,
       subject: 'Your OTP Code',
       html: `<p>Your OTP code is <strong>${otp}</strong>. It will expire in 10 minutes.</p>`

@@ -23,12 +23,14 @@ const profileRoutes = require('./routes/profile');
 const cartRoutes = require('./routes/cart');
 const productRoutes = require('./routes/products');
 const posRoutes = require('./routes/pos');
+const paymentRoutes = require('./routes/payments');
 
 /**
  * Custom Middleware
  * @module middleware/errorHandler - Centralized error handling for all routes
  */
 const errorHandler = require('./middleware/errorHandler');
+const { formatDate } = require('./utils/logging');
 
 /**
  * Initialize Express Application
@@ -48,6 +50,9 @@ const io = new Server(server, {
   transports: ["websocket", "polling"],
 });
 
+// Make io instance globally available for helpers
+global.io = io;
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
@@ -56,17 +61,17 @@ app.use(express.urlencoded({ extended: true }));
  */
 app.post("/emit", (req, res) => {
   const { event, payload } = req.body;
-  console.log(`📡 Bridge Received: ${event}`, payload);
+  console.log(`\n[${formatDate()}] - 📡 SOCKET.IO BRIDGE REQUEST RECEIVED | Event: ${event} | Payload:`, JSON.stringify(payload, null, 2));
   
   // 1. Global Broadcast
   io.emit(event, payload);
-  console.log(`📢 Global Broadcast: ${event}`);
+  console.log(`[${formatDate()}] - 📢 GLOBAL BROADCAST SENT | Event: ${event}`);
 
   // 2. Room-specific Broadcast
   const targetUserId = payload.userId || (payload.data && payload.data.userId);
   if (targetUserId) {
     io.to(`user:${targetUserId}`).emit(event, payload);
-    console.log(`🎯 Room Broadcast to user:${targetUserId}: ${event}`);
+    console.log(`[${formatDate()}] - 🎯 ROOM BROADCAST SENT | Target: user:${targetUserId} | Event: ${event}`);
   }
   
   res.json({ success: true });
@@ -76,20 +81,20 @@ app.post("/emit", (req, res) => {
  * Socket.io Connection Logic
  */
 io.on("connection", (socket) => {
-  console.log("🟢 Client connected:", socket.id);
+  console.log(`\n[${formatDate()}] - 🟢 SOCKET.IO CLIENT CONNECTED | Socket ID: ${socket.id}`);
 
   socket.on("join", (userId) => {
     socket.join(`user:${userId}`);
-    console.log(`✅ User ${userId} joined room: user:${userId}`);
+    console.log(`[${formatDate()}] - ✅ SOCKET.IO ROOM JOINED | User: ${userId} | Socket: ${socket.id} | Room: user:${userId}`);
   });
 
   socket.on("joinRoom", (roomName) => {
     socket.join(roomName);
-    console.log(`✅ Socket ${socket.id} joined room: ${roomName}`);
+    console.log(`[${formatDate()}] - ✅ SOCKET.IO ROOM JOINED | Socket: ${socket.id} | Room: ${roomName}`);
   });
 
   socket.on("disconnect", (reason) => {
-    console.log("🔴 Client disconnected:", socket.id, "Reason:", reason);
+    console.log(`\n[${formatDate()}] - 🔴 SOCKET.IO CLIENT DISCONNECTED | Socket ID: ${socket.id} | Reason: ${reason}`);
   });
 });
 
@@ -162,6 +167,7 @@ app.use('/api/profile', profileRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/pos', posRoutes);
+app.use('/api/payments', paymentRoutes);
 
 /**
  * Health Check Endpoint
