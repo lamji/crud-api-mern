@@ -1,5 +1,7 @@
 const Order = require('../../models/Order');
 const Cashier = require('../../models/Cashier');
+const { setJSON, clearCache } = require('../../utils/redis');
+const { formatDate } = require('../../utils/logging');
 
 /**
  * @desc    Update order status
@@ -7,6 +9,12 @@ const Cashier = require('../../models/Cashier');
  * @access  Private (Cashier only)
  */
 exports.updateOrderStatus = async (req, res) => {
+  const startTime = Date.now();
+  const startTimeFormatted = formatDate(startTime);
+  const { orderId } = req.params;
+  const { status } = req.body;
+  console.log(`\n[${startTimeFormatted}] - 🔄 UPDATE ORDER STATUS REQUEST | Order ID: ${orderId} | New Status: ${status} | User: ${req.user?.email} | IP: ${req.ip}`);
+
   try {
     // Check if user is a cashier
     if (req.user?.role !== process.env.CASHIER_KEY) {
@@ -139,6 +147,18 @@ exports.updateOrderStatus = async (req, res) => {
         });
       }
     }
+
+    // Invalidate the cache for this specific order
+    const orderCacheKey = `order:${orderId}`;
+    await clearCache(orderCacheKey);
+    console.log(`[${startTimeFormatted}] - 🧹 Cache invalidated for order: ${orderId}`);
+
+    // Invalidate all caches for order lists
+    await clearCache('orders:*');
+    console.log(`[${startTimeFormatted}] - 🧹 Cache invalidated for all order lists`);
+
+    const responseTime = Date.now() - startTime;
+    console.log(`[${startTimeFormatted}] - ✅ ORDER STATUS UPDATED SUCCESSFULLY | Total time: ${responseTime}ms`);
 
     res.status(200).json({
       success: true,

@@ -18,6 +18,12 @@ require('dotenv').config();
 const authRoutes = require('./routes/auth');
 const todoRoutes = require('./routes/todos');
 const notificationRoutes = require('./routes/notifications');
+
+/**
+ * Utility Imports
+ */
+const { createSocketBridge } = require('./utils/socketBridge');
+const { setupSocketHandlers } = require('./utils/socketHandlers');
 const testRoutes = require('./routes/test');
 const profileRoutes = require('./routes/profile');
 const cartRoutes = require('./routes/cart');
@@ -30,7 +36,6 @@ const paymentRoutes = require('./routes/payments');
  * @module middleware/errorHandler - Centralized error handling for all routes
  */
 const errorHandler = require('./middleware/errorHandler');
-const { formatDate } = require('./utils/logging');
 
 /**
  * Initialize Express Application
@@ -59,44 +64,12 @@ app.use(express.urlencoded({ extended: true }));
 /**
  * HTTP → SOCKET BRIDGE
  */
-app.post("/emit", (req, res) => {
-  const { event, payload } = req.body;
-  console.log(`\n[${formatDate()}] - 📡 SOCKET.IO BRIDGE REQUEST RECEIVED | Event: ${event} | Payload:`, JSON.stringify(payload, null, 2));
-  
-  // 1. Global Broadcast
-  io.emit(event, payload);
-  console.log(`[${formatDate()}] - 📢 GLOBAL BROADCAST SENT | Event: ${event}`);
-
-  // 2. Room-specific Broadcast
-  const targetUserId = payload.userId || (payload.data && payload.data.userId);
-  if (targetUserId) {
-    io.to(`user:${targetUserId}`).emit(event, payload);
-    console.log(`[${formatDate()}] - 🎯 ROOM BROADCAST SENT | Target: user:${targetUserId} | Event: ${event}`);
-  }
-  
-  res.json({ success: true });
-});
+app.post("/emit", createSocketBridge(io));
 
 /**
  * Socket.io Connection Logic
  */
-io.on("connection", (socket) => {
-  console.log(`\n[${formatDate()}] - 🟢 SOCKET.IO CLIENT CONNECTED | Socket ID: ${socket.id}`);
-
-  socket.on("join", (userId) => {
-    socket.join(`user:${userId}`);
-    console.log(`[${formatDate()}] - ✅ SOCKET.IO ROOM JOINED | User: ${userId} | Socket: ${socket.id} | Room: user:${userId}`);
-  });
-
-  socket.on("joinRoom", (roomName) => {
-    socket.join(roomName);
-    console.log(`[${formatDate()}] - ✅ SOCKET.IO ROOM JOINED | Socket: ${socket.id} | Room: ${roomName}`);
-  });
-
-  socket.on("disconnect", (reason) => {
-    console.log(`\n[${formatDate()}] - 🔴 SOCKET.IO CLIENT DISCONNECTED | Socket ID: ${socket.id} | Reason: ${reason}`);
-  });
-});
+setupSocketHandlers(io);
 
 /**
  * Security Middleware
@@ -114,7 +87,7 @@ const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100 // limit each IP to 100 requests per windowMs
 });
-app.use(limiter);
+// app.use(limiter);
 
 /**
  * CORS Configuration
@@ -148,64 +121,76 @@ app.use(cors({
  * Connects to MongoDB using URI from environment variables or defaults to localhost
  * @see {@link https://mongoosejs.com/docs/connections.html}
  */
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/todo-app', {
+const db = mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/todo-app', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
+  maxPoolSize: 50,        // Maximum number of sockets in the connection pool
+  minPoolSize: 5,         // Minimum number of sockets in the connection pool
+  maxIdleTimeMS: 30000,   // Close connections after 30s of inactivity
+  serverSelectionTimeoutMS: 3000, // Reduced timeout for faster failure detection
+  socketTimeoutMS: 10000,  // Reduced socket timeout
+  connectTimeoutMS: 5000,  // Reduced connection timeout
+  bufferCommands: false,   // Disable mongoose buffering
+});
+
+// Wait for MongoDB connection before starting server
+db.then(() => {
+  console.log('MongoDB connected successfully');
+  
+  /**
+   * API Routes
+   * Mounts route handlers under their respective paths
+   */
+  app.use('/api/auth', authRoutes);
+  app.use('/api/todos', todoRoutes);
+  app.use('/api/notifications', notificationRoutes);
+  app.use('/api/test', testRoutes);
+  app.use('/api/profile', profileRoutes);
+  app.use('/api/cart', cartRoutes);
+  app.use('/api/products', productRoutes);
+  app.use('/api/pos', posRoutes);
+  app.use('/api/payments', paymentRoutes);
+
+  /**
+   * Error Handling Middleware
+   * Global error handler for unhandled errors
+   */
+  app.use(errorHandler);
+
+  /**
+   * Health Check Endpoint
+   * @route GET /api/health
+   * @returns {Object} Server status information
+   */
+  app.get('/api/health', (req, res) => {
+    res.status(200).json({
+      success: true,
+      message: 'Server is running with socket io',
+      timestamp: new Date().toISOString()
+    });
+  });
+
+  /**
+   * 404 Handler
+   * Catch-all for undefined routes
+   */
+  app.use('*', (req, res) => {
+    res.status(404).json({
+      success: false,
+      message: 'Route not found'
+    });
+  });
+
+  /**
+   * Start Server
+   * Starts the Express server on configured port
+   */
+  const PORT = process.env.PORT || 5000;
+  server.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
 })
-.then(() => console.log('MongoDB connected successfully'))
-.catch(err => console.error('MongoDB connection error:', err));
-
-/**
- * API Routes
- * Mounts route handlers under their respective paths
- */
-app.use('/api/auth', authRoutes);
-app.use('/api/todos', todoRoutes);
-app.use('/api/notifications', notificationRoutes);
-app.use('/api/test', testRoutes);
-app.use('/api/profile', profileRoutes);
-app.use('/api/cart', cartRoutes);
-app.use('/api/products', productRoutes);
-app.use('/api/pos', posRoutes);
-app.use('/api/payments', paymentRoutes);
-
-/**
- * Health Check Endpoint
- * @route GET /api/health
- * @returns {Object} Server status information
- */
-app.get('/api/health', (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: 'Server is running with socket io',
-    timestamp: new Date().toISOString()
-  });
-});
-
-/**
- * Error Handling
- * Central error handler - must be after all other middleware/routes
- */
-app.use(errorHandler);
-
-/**
- * 404 Handler
- * Catch-all for undefined routes
- */
-app.use('*', (req, res) => {
-  res.status(404).json({
-    success: false,
-    message: 'Route not found'
-  });
-});
-
-/**
- * Server Initialization
- * Starts the Express server on the specified port
- * @constant {number} PORT - Server port from environment or default 5000
- */
-const PORT = process.env.PORT || 5000;
-
-server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+.catch(err => {
+  console.error('MongoDB connection error:', err);
+  process.exit(1); // Exit if DB connection fails
 });

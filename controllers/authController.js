@@ -2,26 +2,11 @@ const { validationResult } = require('express-validator');
 const User = require('../models/User');
 const Cashier = require('../models/Cashier');
 const { generateToken } = require('../utils/jwt');
-const crypto = require('crypto');
-const nodemailer = require('nodemailer');
+const { formatDate, logError } = require('../utils/logging');
+const { getJSON, setJSON } = require('../utils/redis');
 const { register, logout } = require('./auth');
 
-// Helper function to format date as mm/dd/yy-hh-mm-ss
-const formatDate = (date = new Date()) => {
-  const d = new Date(date);
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  const year = String(d.getFullYear()).slice(-2);
-  const hours = String(d.getHours()).padStart(2, '0');
-  const minutes = String(d.getMinutes()).padStart(2, '0');
-  const seconds = String(d.getSeconds()).padStart(2, '0');
-  return `${month}/${day}/${year}-${hours}-${minutes}-${seconds}`;
-};
 
-// Helper function for red error logging
-const logError = (message) => {
-  console.log(`\x1b[31m[${formatDate()}] - ${message}\x1b[0m`);
-};
 
 /**
  * Handle user login
@@ -32,167 +17,144 @@ const logError = (message) => {
  * - Optimized for high-volume requests
  */
 async function login(req, res, next) {
-  const startTime = new Date();
-  console.log(`\n[${formatDate(startTime)}] - 🔐 LOGIN PROCESS STARTED | Endpoint: ${req.method} ${req.originalUrl} | Email: ${req.body.email} | IP: ${req.ip} | User-Agent: ${req.get('User-Agent')}`);
-  
+  const startTime = Date.now();
+  const startTimeFormatted = formatDate(startTime);
+  const { email, password } = req.body;
+  let usedRedis = true; // Track if Redis was used
+  console.log(`\n[${startTimeFormatted}] - 🔐 LOGIN PROCESS STARTED | Email: ${email} | IP: ${req.ip}`);
+
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.log(`[${startTimeFormatted}] - ❌ Validation failed | Email: "${email}" | Password: "${password ? '[REDACTED]' : 'EMPTY'}" | Errors:`, errors.array());
       logError('❌ Validation failed');
-      logError(`📋 Validation errors: ${JSON.stringify(errors.array())}`);
-      return res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array(),
-      });
+      return res.status(400).json({ success: false, message: 'Validation failed', errors: errors.array() });
     }
 
-    const { email, password } = req.body;
-    console.log(`[${formatDate()}] - 🔍 Attempting login for email: ${email}`);
+    console.log(`[${startTimeFormatted}] - 🔍 Parallel login check for: ${email}`);
 
-    try {
-      let user, userData, token;
-      
-      // First try to find user by email
+    // Check Redis cache first for user data
+    const userCacheKey = `user:${email.toLowerCase()}`;
+    const cachedUser = await getJSON(userCacheKey);
+    
+    if (cachedUser) {
+      console.log(`[${startTimeFormatted}] - 🎯 Redis cache HIT for user: ${email}`);
+      usedRedis = true;
+      // Verify cached user password
       try {
-        console.log(`[${formatDate()}] - 👤 Attempting user login for: ${email}`);
-        user = await User.findByCredentials(email, password);
-        console.log(`[${formatDate()}] - ✅ User credentials verified successfully`);
-        console.log(`[${formatDate()}] - 👤 User found: ${user.name} (${user.email})`);
-        console.log(`[${formatDate()}] - 🔑 User role: ${user.role}`);
+        const User = require('../models/User');
+        const tempUser = new User(cachedUser);
+        const isMatch = await tempUser.matchPassword(password);
         
-        // Update lastLogin atomically for concurrency safety
-        await User.findByIdAndUpdate(
-          user._id,
-          { $set: { lastLogin: new Date() } },
-          { new: true }
-        );
-        console.log(`[${formatDate()}] - 📅 Updated lastLogin for user`);
-
-        // Fetch user with updated signupPlatform and createdAtKey
-        const userWithPlatform = await User.findById(user._id)
-          .select('+signupPlatform +createdAtKey');
-
-        userData = {
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          lastLogin: new Date(),
-          createdAt: user.createdAt,
-          signupPlatform: userWithPlatform?.signupPlatform || 'web',
-          createdAtKey: (userWithPlatform?.signupPlatform || 'web') === 'web' 
-            ? null 
-            : userWithPlatform?.createdAtKey || null,
-        };
-        
-        token = generateToken({ 
-          id: user._id,
-          role: user.role 
-        });
-        
-        console.log(`[${formatDate()}] - 🎫 JWT token generated for user`);
-        console.log(`[${formatDate()}] - ✅ USER LOGIN SUCCESSFUL`);
-        console.log(`[${formatDate()}] - ⏱️  Total login time: ${Date.now() - startTime.getTime()}ms`);
-        
-      } catch (userError) {
-        console.log(`[${formatDate()}] - ⚠️  User login failed`);
-        logError(`📝 User error: ${userError.message}`);
-        
-        // Only try cashier login if user doesn't exist (not if credentials are wrong)
-        if (userError.message === 'Invalid credentials') {
-          // User exists but wrong password - don't try cashier login
-          logError('❌ LOGIN FAILED - Invalid credentials');
-          logError(`⏱️  Failed login time: ${Date.now() - startTime.getTime()}ms`);
+        if (isMatch) {
+          console.log(`[${startTimeFormatted}] - ✅ Cached user credentials verified: ${cachedUser.name}`);
           
-          return res.status(401).json({
-            success: false,
-            message: 'Invalid credentials',
-          });
-        }
-        
-        // User doesn't exist, try cashier login
-        try {
-          console.log(`[${formatDate()}] - 💼 User not found, trying cashier login for: ${email}`);
-          const cashier = await Cashier.findByCredentials(email, password);
-          console.log(`[${formatDate()}] - ✅ Cashier credentials verified successfully`);
-          console.log(`[${formatDate()}] - 💼 Cashier found: ${cashier.name} (${cashier.userName})`);
-          
-          // Check if cashier already has an active session
-          if (cashier.hasActiveSession()) {
-            logError('🚫 Cashier login blocked - active session exists');
-            console.log(`[${formatDate()}] - 📍 Active session IP: ${cashier.sessionInfo?.ipAddress}`);
-            console.log(`[${formatDate()}] - ⏰ Active session since: ${cashier.sessionInfo?.loginTime}`);
-            
-            return res.status(403).json({
-              success: false,
-              message: 'Cashier already logged in from another device. Please logout first.',
-              statusCode: 403,
-              activeSession: {
-                ipAddress: cashier.sessionInfo?.ipAddress,
-                loginTime: cashier.sessionInfo?.loginTime
-              }
-            });
-          }
-          
-          // Record login activity
-          await cashier.recordLogin(req.ip, req.get('User-Agent'));
-          console.log(`[${formatDate()}] - 📝 Cashier login activity recorded`);
-          
-          userData = {
-            name: cashier.name,
-            userName: cashier.userName,
-            role: process.env.CASHIER_KEY || 'cashier',
-            lastLogin: cashier.lastLogin,
-            createdAt: cashier.createdAt,
-            isActive: cashier.isActive
+          const token = generateToken({ id: cachedUser._id, role: cachedUser.role });
+          const userData = {
+            name: cachedUser.name,
+            email: cachedUser.email,
+            role: cachedUser.role,
+            lastLogin: new Date(),
+            createdAt: cachedUser.createdAt,
+            signupPlatform: cachedUser.signupPlatform || 'web',
           };
           
-          token = generateToken({ 
-            id: cashier._id,
-            role: process.env.CASHIER_KEY || 'cashier',
-            type: 'cashier'
-          });
-          
-          console.log(`[${formatDate()}] - 🎫 JWT token generated for cashier`);
-          console.log(`[${formatDate()}] - ✅ CASHIER LOGIN SUCCESSFUL`);
-          console.log(`[${formatDate()}] - ⏱️  Total login time: ${Date.now() - startTime.getTime()}ms`);
-          
-        } catch (cashierError) {
-          console.log(`[${formatDate()}] - ⚠️  Cashier login failed`);
-          logError(`📝 Cashier error: ${cashierError.message}`);
-          logError('❌ USER NOT FOUND AND CASHIER LOGIN FAILED');
-          logError(`⏱️  Failed login time: ${Date.now() - startTime.getTime()}ms`);
-          
-          // Both user and cashier login failed
-          throw new Error('Invalid credentials');
+          const responseTime = Date.now() - startTime;
+          console.log(`[${startTimeFormatted}] - ✅ CACHED USER LOGIN SUCCESSFUL | Total time: ${responseTime}ms | Redis: ${usedRedis}`);
+          return res.status(200).json({ success: true, message: 'Login successful', token, user: userData });
         }
+      } catch (passwordError) {
+        console.log(`[${startTimeFormatted}] - ⚠️ Cached user password verification failed, falling back to DB`);
+        usedRedis = false;
+      }
+    } else {
+      console.log(`[${startTimeFormatted}] - 🗄️ Redis cache MISS for user: ${email}`);
+      usedRedis = false;
+    }
+
+    const [userResult, cashierResult] = await Promise.allSettled([
+      User.findByCredentials(email, password),
+      Cashier.findByCredentials(email, password)
+    ]);
+
+    // --- User Login Success --- 
+    if (userResult.status === 'fulfilled') {
+      const user = userResult.value;
+      console.log(`[${startTimeFormatted}] - ✅ User credentials verified: ${user.name}`);
+
+      const userWithPlatform = await User.findByIdAndUpdate(
+        user._id,
+        { $set: { lastLogin: new Date() } },
+        { new: true, select: '+signupPlatform +createdAtKey', lean: true }
+      );
+
+      // Cache user data in Redis for 5 minutes (300 seconds)
+      const userToCache = {
+        ...user,
+        signupPlatform: userWithPlatform?.signupPlatform || 'web',
+        createdAtKey: userWithPlatform?.createdAtKey
+      };
+      await setJSON(userCacheKey, userToCache, 300);
+      console.log(`[${startTimeFormatted}] - 💾 User data cached in Redis for 5 minutes`);
+
+      const userData = {
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        lastLogin: new Date(),
+        createdAt: user.createdAt,
+        signupPlatform: userWithPlatform?.signupPlatform || 'web',
+      };
+
+      const token = generateToken({ id: user._id, role: user.role });
+      const responseTime = Date.now() - startTime;
+      console.log(`[${startTimeFormatted}] - ✅ USER LOGIN SUCCESSFUL | Total time: ${responseTime}ms | Redis: ${usedRedis}`);
+      
+      return res.status(200).json({ success: true, message: 'Login successful', token, user: userData });
+    }
+
+    // --- Cashier Login Success ---
+    if (cashierResult.status === 'fulfilled') {
+      const cashier = cashierResult.value;
+      console.log(`[${startTimeFormatted}] - ✅ Cashier credentials verified: ${cashier.name}`);
+
+      if (cashier.hasActiveSession()) {
+        logError('🚫 Cashier login blocked - active session exists');
+        return res.status(403).json({
+          success: false,
+          message: 'Cashier already logged in from another device. Please logout first.',
+          activeSession: cashier.sessionInfo
+        });
       }
 
-      const responseTime = Date.now() - startTime.getTime();
-      console.log(`[${formatDate()}] - 📤 Sending successful login response`);
-      console.log(`[${formatDate()}] - ⏱️  Total processing time: ${responseTime}ms`);
-      
-      return res.status(200).json({
-        success: true,
-        message: 'Login successful',
-        token,
-        user: userData,
-      });
-    } catch (err) {
-      // Keep original error handling behavior
-      logError('❌ LOGIN FAILED - Invalid credentials');
-      logError(`⏱️  Failed login time: ${Date.now() - startTime.getTime()}ms`);
-      
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid credentials',
-      });
+      await cashier.recordLogin(req.ip, req.get('User-Agent'));
+      const userData = {
+        name: cashier.name,
+        userName: cashier.userName,
+        role: process.env.CASHIER_KEY || 'cashier',
+        lastLogin: cashier.lastLogin,
+      };
+
+      const token = generateToken({ id: cashier._id, role: process.env.CASHIER_KEY || 'cashier', type: 'cashier' });
+      const responseTime = Date.now() - startTime;
+      console.log(`[${startTimeFormatted}] - ✅ CASHIER LOGIN SUCCESSFUL | Total time: ${responseTime}ms | Redis: ${usedRedis}`);
+
+      return res.status(200).json({ success: true, message: 'Login successful', token, user: userData });
     }
+
+    // --- Login Failure ---
+    logError('❌ LOGIN FAILED - Invalid credentials');
+    const userErrorReason = userResult.reason?.message || 'N/A';
+    const cashierErrorReason = cashierResult.reason?.message || 'N/A';
+    console.log(`[${startTimeFormatted}] - User Auth Failure: ${userErrorReason}`);
+    console.log(`[${startTimeFormatted}] - Cashier Auth Failure: ${cashierErrorReason}`);
+    logError(`⏱️  Failed login time: ${Date.now() - startTime}ms`);
+
+    return res.status(401).json({ success: false, message: 'Invalid credentials' });
+
   } catch (error) {
     logError('💥 LOGIN ERROR - Server error');
     logError(`📝 Error: ${error.message}`);
-    logError(`⏱️  Error time: ${Date.now() - startTime.getTime()}ms`);
-    
     return next(error);
   }
 }
@@ -277,6 +239,12 @@ async function guestLogin(req, res, next) {
  * - Returns whether email exists and OTP status
  */
 async function checkEmail(req, res, next) {
+  const startTime = Date.now();
+  const startTimeFormatted = formatDate(startTime);
+  const { email } = req.body;
+  let usedRedis = false;
+  console.log(`\n[${startTimeFormatted}] - 📧 EMAIL CHECK PROCESS STARTED | Email: ${email} | IP: ${req.ip}`);
+
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -287,17 +255,38 @@ async function checkEmail(req, res, next) {
       });
     }
 
-    const { email } = req.body;
+    // Check Redis cache first for email existence
+    const emailCacheKey = `email_exists:${email.toLowerCase()}`;
+    const cachedEmailExists = await getJSON(emailCacheKey);
+    
+    if (cachedEmailExists !== null) {
+      console.log(`[${startTimeFormatted}] - 🎯 Redis cache HIT for email check: ${email}`);
+      usedRedis = true;
+      if (!cachedEmailExists) {
+        return res.status(200).json({
+          success: true,
+          message: 'Email not found',
+          exists: false,
+          email: null,
+        });
+      }
+    } else {
+      console.log(`[${startTimeFormatted}] - 🗄️ Redis cache MISS for email check: ${email}`);
+      usedRedis = false;
+    }
 
     // Use lean query for better performance - only check existence
     const user = await User.findOne({ 
       email: email.toLowerCase().trim(), 
       isActive: true 
-    }).select('email name');
+    }).select('email name').lean();
 
     const exists = !!user;
 
     if (!exists) {
+      // Cache that email doesn't exist for 5 minutes
+      await setJSON(emailCacheKey, false, 300);
+      console.log(`[${startTimeFormatted}] - 💾 Cached email not exists result: ${email}`);
       return res.status(200).json({
         success: true,
         message: 'Email not found',
@@ -305,6 +294,10 @@ async function checkEmail(req, res, next) {
         email: null,
       });
     }
+
+    // Cache that email exists for 5 minutes
+    await setJSON(emailCacheKey, true, 300);
+    console.log(`[${startTimeFormatted}] - 💾 Cached email exists result: ${email}`);
 
     // Email exists, generate and send OTP
     try {
@@ -314,7 +307,16 @@ async function checkEmail(req, res, next) {
       const otp = timestamp + random;
       const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes expiry
 
-      // Store OTP in user document (add these fields to User schema if needed)
+      // Cache OTP in Redis for faster access and backup
+      const otpCacheKey = `password_reset_otp:${email.toLowerCase()}`;
+      await setJSON(otpCacheKey, {
+        otp,
+        expiry: otpExpiry.toISOString(),
+        email: email.toLowerCase()
+      }, 600); // 10 minutes TTL
+      console.log(`[${startTimeFormatted}] - 💾 Password reset OTP cached in Redis: ${email}`);
+
+      // Store OTP in user document as backup
       await User.findOneAndUpdate(
         { email: email.toLowerCase().trim() },
         { 

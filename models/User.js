@@ -109,18 +109,28 @@ userSchema.methods.matchPassword = async function(enteredPassword) {
 
 // Static method to find user by email and include password
 userSchema.statics.findByCredentials = async function(email, password) {
-  const user = await this.findOne({ email, isActive: true }).select('+password');
+  // Use lean query for better performance and normalize email
+  const user = await this.findOne({ 
+    email: email.toLowerCase().trim(), 
+    isActive: true 
+  }).select('+password').lean();
   
   if (!user) {
     throw new Error('Invalid credentials');
   }
 
-  const isMatch = await user.matchPassword(password);
+  // Create a temporary user instance for password comparison
+  const UserInstance = new this(user);
+  const isMatch = await UserInstance.matchPassword(password);
   if (!isMatch) {
     throw new Error('Invalid credentials');
   }
 
   return user;
 };
+
+// Add indexes for better query performance
+userSchema.index({ email: 1, isActive: 1 });
+userSchema.index({ lastLogin: -1 });
 
 module.exports = mongoose.model('User', userSchema);

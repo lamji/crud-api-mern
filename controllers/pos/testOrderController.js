@@ -1,23 +1,8 @@
 const Order = require('../../models/Order');
 const Product = require('../../models/Product');
 const paymongoService = require('../../paymongo/index');
-
-// Helper function to format date as mm/dd/yy-hh-mm-ss
-const formatDate = (date = new Date()) => {
-  const d = new Date(date);
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  const year = String(d.getFullYear()).slice(-2);
-  const hours = String(d.getHours()).padStart(2, '0');
-  const minutes = String(d.getMinutes()).padStart(2, '0');
-  const seconds = String(d.getSeconds()).padStart(2, '0');
-  return `${month}/${day}/${year}-${hours}-${minutes}-${seconds}`;
-};
-
-// Helper function for red error logging
-const logError = (message) => {
-  console.log(`\x1b[31m[${formatDate()}] - ${message}\x1b[0m`);
-};
+const { getJSON, setJSON } = require('../../utils/redis');
+const { formatDate, logError } = require('../../utils/logging');
 
 /**
  * @desc    Test Create Order with Payment Link
@@ -166,62 +151,49 @@ exports.testCreateOrder = async (req, res) => {
     // Check if payment method is online - trigger payment link
     let paymentLink = null;
     let order = null; // Define order in main scope
-    
+
     if (paymentMethod === 'online') {
       console.log(`[${formatDate()}] - 💳 Online payment detected - creating payment link...`);
-      
       try {
-        // Create payment link with minimal metadata to test
         paymentLink = await paymongoService.createPaymentLink(
           totalAmount,
           `Payment for Order ${orderId}`,
-          {
-            oid: orderId
-          }
+          { oid: orderId }
         );
-
         console.log(`[${formatDate()}] - ✅ Payment link created: ${paymentLink.data.id}`);
         console.log(`[${formatDate()}] - 🔗 Checkout URL: ${paymentLink.data.attributes.checkout_url}`);
 
-        // Create order with 'processing' status for online payments
-        order = new Order({
-          ...orderData,
-          status: paymentMethod === 'online' ? 'processing' : 'confirmed', // Use processing for online payments
-          paymentStatus: paymentMethod === 'online' ? 'pending' : 'paid'
-        });
-
-        order.paymentLink = {
+        orderData.status = 'processing';
+        orderData.paymentStatus = 'pending';
+        orderData.paymentLink = {
           id: paymentLink.data.id,
           checkoutUrl: paymentLink.data.attributes.checkout_url,
           reference: paymentLink.data.attributes.reference_number,
           status: paymentLink.data.attributes.status
         };
-
-        await order.save();
-        console.log(`[${formatDate()}] - ✅ Order saved with processing status`);
-
       } catch (paymentError) {
         logError(`❌ Payment link creation failed: ${paymentError.message}`);
-        
         return res.status(400).json({
           success: false,
           message: 'Failed to create payment link',
-          data: {
-            orderData: orderData,
-            paymentError: paymentError.message
-          }
+          data: { orderData, paymentError: paymentError.message }
         });
       }
     } else {
       console.log(`[${formatDate()}] - 💵 Cash payment detected - creating order immediately`);
-      
-      // For cash payments, save the order immediately
-      order = new Order(orderData);
-      order.status = 'confirmed';
-      order.paymentStatus = 'pending_payment';
-      await order.save();
-      console.log(`[${formatDate()}] - ✅ Cash order created successfully`);
+      orderData.status = 'confirmed';
+      orderData.paymentStatus = 'pending_payment';
     }
+
+    // Save the order to the database
+    order = new Order(orderData);
+    await order.save();
+    console.log(`[${formatDate()}] - ✅ Order saved to database: ${order.id}`);
+
+    // Cache the newly created order in Redis for 1 hour
+    const orderCacheKey = `order:${order.id}`;
+    await setJSON(orderCacheKey, order.toObject(), 3600);
+    console.log(`[${formatDate()}] - 💾 Order cached in Redis for 1 hour: ${order.id}`);
 
     // Return success response
     const responseData = {
@@ -281,12 +253,28 @@ exports.testCreateOrder = async (req, res) => {
  */
 exports.getTestOrder = async (req, res) => {
   const startTime = new Date();
+  let usedRedis = false;
   console.log(`\n[${formatDate(startTime)}] - 🔍 GET TEST ORDER REQUEST | Order ID: ${req.params.orderId} | Endpoint: ${req.method} ${req.originalUrl}`);
   
   try {
     const { orderId } = req.params;
+    const orderCacheKey = `order:${orderId}`;
 
-    const order = await Order.findOne({ id: orderId });
+    // Check Redis cache first
+    const cachedOrder = await getJSON(orderCacheKey);
+    if (cachedOrder) {
+      usedRedis = true;
+      console.log(`[${formatDate()}] - 🎯 Redis cache HIT for order: ${orderId}`);
+      console.log(`[${formatDate()}] - ✅ Order found (cached): ${cachedOrder.id} | Status: ${cachedOrder.status} | Payment: ${cachedOrder.paymentStatus}`);
+      return res.status(200).json({
+        success: true,
+        message: 'Order retrieved successfully (from cache)',
+        data: { order: cachedOrder }
+      });
+    }
+
+    console.log(`[${formatDate()}] - 🗄️ Redis cache MISS for order: ${orderId}`);
+    const order = await Order.findOne({ id: orderId }).lean(); // Use lean for performance
 
     if (!order) {
       logError(`❌ Order not found: ${orderId}`);
@@ -297,26 +285,16 @@ exports.getTestOrder = async (req, res) => {
       });
     }
 
+    // Cache the order for 1 hour
+    await setJSON(orderCacheKey, order, 3600);
+    console.log(`[${formatDate()}] - 💾 Order cached in Redis for 1 hour: ${orderId}`);
+
     console.log(`[${formatDate()}] - ✅ Order found: ${order.id} | Status: ${order.status} | Payment: ${order.paymentStatus}`);
 
     res.status(200).json({
       success: true,
       message: 'Order retrieved successfully',
-      data: {
-        order: {
-          id: order.id,
-          customer: order.customer,
-          items: order.items,
-          deliveryType: order.deliveryType,
-          paymentMethod: order.paymentMethod,
-          totalAmount: order.totalAmount,
-          status: order.status,
-          paymentStatus: order.paymentStatus,
-          paymentLink: order.paymentLink,
-          createdAt: order.createdAt,
-          updatedAt: order.updatedAt
-        }
-      }
+      data: { order }
     });
 
   } catch (error) {

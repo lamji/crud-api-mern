@@ -1,6 +1,8 @@
 const Order = require('../../models/Order');
 const Product = require('../../models/Product');
 const User = require('../../models/User');
+const { setJSON } = require('../../utils/redis');
+const { formatDate } = require('../../utils/logging');
 
 /**
  * @desc    Create new order
@@ -8,6 +10,9 @@ const User = require('../../models/User');
  * @access  Private
  */
 exports.createOrder = async (req, res) => {
+  const startTime = Date.now();
+  const startTimeFormatted = formatDate(startTime);
+  console.log(`\n[${startTimeFormatted}] - 🛒 CREATE ORDER REQUEST | User: ${req.user?.email} | IP: ${req.ip}`);
   try {
     const { customer, items, paymentMethod, deliveryType, deliveryFee } = req.body;
 
@@ -149,6 +154,14 @@ exports.createOrder = async (req, res) => {
     const populatedOrder = await Order.findById(order._id)
       .populate('items.product', '-__v')
       .lean();
+
+    // Cache the newly created order for 1 hour
+    const orderCacheKey = `order:${populatedOrder.id}`;
+    await setJSON(orderCacheKey, populatedOrder, 3600);
+    console.log(`[${startTimeFormatted}] - 💾 Order cached in Redis for 1 hour: ${populatedOrder.id}`);
+
+    const responseTime = Date.now() - startTime;
+    console.log(`[${startTimeFormatted}] - ✅ ORDER CREATED SUCCESSFULLY | Total time: ${responseTime}ms`);
 
     res.status(201).json({
       success: true,
