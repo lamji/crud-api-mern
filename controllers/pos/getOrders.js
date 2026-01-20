@@ -1,4 +1,6 @@
 const Order = require('../../models/Order');
+const { getJSON, setJSON } = require('../../utils/redis');
+const { formatDate } = require('../../utils/logging');
 
 /**
  * @desc    Get all orders with pagination and filtering
@@ -6,9 +8,32 @@ const Order = require('../../models/Order');
  * @access  Private (Admin/Cashier only)
  */
 exports.getOrders = async (req, res) => {
-  console.log('User in getOrders:', req.user);
-  console.log('User role:', req.user?.role);
+  const startTime = Date.now();
+  const startTimeFormatted = formatDate(startTime);
+  console.log(`\n[${startTimeFormatted}] - 📦 GET ORDERS REQUEST | User: ${req.user?.email} | IP: ${req.ip}`);
+
   try {
+    const { page = 1, limit = 10, status, customer, startDate, endDate, sortBy = 'date', sortOrder = 'desc' } = req.query;
+
+    // Create a dynamic cache key based on query parameters
+    const cacheKey = `orders:${JSON.stringify(req.query)}`;
+
+    // Check Redis cache first
+    const cachedData = await getJSON(cacheKey);
+    if (cachedData) {
+      console.log(`[${startTimeFormatted}] - 🎯 Redis cache HIT for orders query: ${cacheKey}`);
+      const responseTime = Date.now() - startTime;
+      console.log(`[${startTimeFormatted}] - ✅ GET ORDERS SUCCESSFUL (from cache) | Total time: ${responseTime}ms`);
+      return res.status(200).json({
+        success: true,
+        source: 'cache',
+        ...cachedData,
+        statusCode: 200
+      });
+    }
+
+    console.log(`[${startTimeFormatted}] - 🗄️ Redis cache MISS for orders query: ${cacheKey}`);
+    
     // Check if user is authenticated
     if (!req.user) {
       return res.status(401).json({
@@ -27,17 +52,7 @@ exports.getOrders = async (req, res) => {
         statusCode: 403
       });
     }
-    const {
-      page = 1,
-      limit = 10,
-      status,
-      customer,
-      startDate,
-      endDate,
-      sortBy = 'date',
-      sortOrder = 'desc'
-    } = req.query;
-
+    
     // Build query
     const query = {};
     
@@ -78,6 +93,25 @@ exports.getOrders = async (req, res) => {
 
     // Get total count for pagination
     const total = await Order.countDocuments(query);
+
+    const responseData = {
+      data: {
+        orders,
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total,
+          pages: Math.ceil(total / limitNum)
+        }
+      }
+    };
+
+    // Cache the response data for 5 minutes
+    await setJSON(cacheKey, responseData, 300);
+    console.log(`[${startTimeFormatted}] - 💾 Orders query result cached in Redis for 5 minutes: ${cacheKey}`);
+
+    const responseTime = Date.now() - startTime;
+    console.log(`[${startTimeFormatted}] - ✅ GET ORDERS SUCCESSFUL (from DB) | Total time: ${responseTime}ms`);
 
     res.status(200).json({
       success: true,

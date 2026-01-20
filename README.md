@@ -50,6 +50,13 @@ JWT_SECRET=change-this-secret
 JWT_EXPIRE=30d
 GUEST_EMAIL=guest@example.com
 GUEST_PASSWORD=guestpass123
+
+# Email (required for /api/resume/send)
+EMAIL_SERVICE=gmail
+EMAIL_USER=your_email@example.com
+EMAIL_PASS=your_app_password
+EMAIL_FROM=your_email@example.com
+STORE_NAME=Portfolio
 ```
 
 Important: Never commit `.env` to source control.
@@ -62,6 +69,17 @@ npm run dev
 
 - Base URL: `http://localhost:5000/api`
 - Health check: `GET /api/health`
+
+## Resume PDF Email
+
+### Send resume PDF to an email
+- Route: `POST /api/resume/send`
+- Body:
+```json
+{
+  "email": "someone@example.com"
+}
+```
 
 ## Authentication
 
