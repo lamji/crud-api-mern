@@ -167,8 +167,6 @@ db.then(() => {
   app.get('/api/health', (req, res) => {
     res.status(200).json({
       success: true,
-      message: 'Server is running with socket io',
-      timestamp: new Date().toISOString()
     });
   });
 
