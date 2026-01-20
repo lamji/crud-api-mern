@@ -307,10 +307,12 @@ async function generateResumePdfBuffer() {
       
       // Try common Linux Chrome locations
       const alternatives = [
-        '/usr/bin/chromium-browser',
+        '/home/heroku/.cache/puppeteer/chrome/linux-143.0.7499.192/chrome-linux64/chrome',
         '/usr/bin/chromium',
+        '/usr/bin/chromium-browser',
+        '/usr/local/bin/chrome',
         '/snap/bin/chromium',
-        '/usr/local/bin/chrome'
+        '/usr/bin/google-chrome'
       ];
       
       for (const altPath of alternatives) {
