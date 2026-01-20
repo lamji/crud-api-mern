@@ -35,50 +35,26 @@ async function register(req, res, next) {
       });
     }
 
-    // Check if all users data is cached in Redis
-    const allUsersCacheKey = 'all_users';
-    let allUsers = await getJSON(allUsersCacheKey);
-    usedRedis = false;
+    // Check Redis cache first for existing pending registration
+    const pendingRegistrationKey = `pending_registration:${email.toLowerCase()}`;
+    const existingPendingRegistration = await getJSON(pendingRegistrationKey);
+    
+    if (existingPendingRegistration) {
+      console.log(`[${startTimeFormatted}] - 🎯 Redis cache HIT for pending registration: ${email}`);
+      return res.status(400).json({
+        success: false,
+        message: 'Verification already sent. Please check your email or wait for the current code to expire.',
+      });
+    }
 
-    if (allUsers) {
-      console.log(`[${startTimeFormatted}] - 🎯 Redis cache HIT for all users data`);
-      usedRedis = true;
-      
-      // Check if user exists in cached data
-      const existingUser = allUsers.find(user => 
-        user.email.toLowerCase() === email.toLowerCase()
-      );
-      
-      if (existingUser) {
-        console.log(`[${startTimeFormatted}] - ❌ Email already exists (cached): ${email}`);
-        return res.status(400).json({
-          success: false,
-          message: 'User already exists with this email',
-        });
-      }
-    } else {
-      console.log(`[${startTimeFormatted}] - 🗄️ Redis cache MISS for all users data`);
-      
-      // Fetch all users from database and cache them
-      console.log(`[${startTimeFormatted}] - 📥 Fetching all users from database`);
-      allUsers = await User.find({}).lean();
-      
-      // Cache all users data for 10 minutes
-      await setJSON(allUsersCacheKey, allUsers, 600);
-      console.log(`[${startTimeFormatted}] - 💾 All users data cached in Redis (${allUsers.length} users)`);
-      
-      // Check if user exists in freshly cached data
-      const existingUser = allUsers.find(user => 
-        user.email.toLowerCase() === email.toLowerCase()
-      );
-      
-      if (existingUser) {
-        console.log(`[${startTimeFormatted}] - ❌ Email already exists (database): ${email}`);
-        return res.status(400).json({
-          success: false,
-          message: 'User already exists with this email',
-        });
-      }
+    // Check if user already exists directly from the database
+    const existingUser = await User.findOne({ email: email.toLowerCase() }).lean();
+    if (existingUser) {
+      console.log(`[${startTimeFormatted}] - ❌ Email already exists: ${email}`);
+      return res.status(400).json({
+        success: false,
+        message: 'User already exists with this email',
+      });
     }
 
     // Generate unique OTP using timestamp + random (same pattern as updateEmail)
@@ -103,7 +79,6 @@ async function register(req, res, next) {
     }
 
     // Store registration data with OTP in Redis instead of memory
-    const pendingRegistrationKey = `pending_registration:${email.toLowerCase()}`;
     const pendingUser = {
       name,
       email,

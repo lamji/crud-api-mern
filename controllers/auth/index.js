@@ -4,14 +4,19 @@
 const { register } = require('./register');
 const { logout } = require('./logout');
 const { registerCashier } = require('./registerCashier');
-// Add other auth functions here as they are moved
-// const { login } = require('./login');
-// const { forgotPassword } = require('./forgotPassword');
-// const { resetPassword } = require('./resetPassword');
+const { login } = require('./login');
+const { checkEmail } = require('./checkEmail');
+const { resetPassword } = require('./resetPassword');
+const { resetPasswordVerify } = require('./resetPasswordVerify');
+const { cashierLogout } = require('./cashierLogout');
 
 module.exports = {
   register,
   logout,
   registerCashier,
-  // Add other exports here
+  login,
+  checkEmail,
+  resetPassword,
+  resetPasswordVerify,
+  cashierLogout,
 };

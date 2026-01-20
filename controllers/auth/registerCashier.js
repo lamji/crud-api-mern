@@ -1,5 +1,4 @@
 const Cashier = require('../../models/Cashier');
-const { generateToken } = require('../../utils/jwt');
 const { getJSON, setJSON } = require('../../utils/redis');
 const { formatDate } = require('../../utils/logging');
 

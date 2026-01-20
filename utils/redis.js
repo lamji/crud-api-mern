@@ -12,6 +12,8 @@ let client = null;
 let isConnected = false;
 let errorCount = 0;
 const MAX_ERROR_LOGS = 5; // Only log first 5 errors
+let fallbackLogCount = 0;
+const MAX_FALLBACK_LOGS = 5;
 
 /**
  * Initialize Redis connection
@@ -22,27 +24,18 @@ async function connectRedis() {
     if (!client) {
       // Use Redis Cloud configuration
       client = redis.createClient({
-        username: process.env.REDIS_USERNAME || 'default',
-        password: process.env.REDIS_PASSWORD || '7d8ebsCmZuauf2rtnAulYUYxhWcMMo3w',
+        username: process.env.REDIS_USERNAME,
+        password: process.env.REDIS_PASSWORD,
         socket: {
-          host: process.env.REDIS_HOST || 'redis-12244.c257.us-east-1-3.ec2.cloud.redislabs.com',
-          port: parseInt(process.env.REDIS_PORT) || 12244
-        },
-        retry_strategy: (options) => {
-          if (options.error && options.error.code === 'ECONNREFUSED') {
-            logError('Redis server connection refused');
-            return new Error('Redis server connection refused');
+          host: process.env.REDIS_HOST ,
+          port: parseInt(process.env.REDIS_PORT) || 12244,
+          reconnectStrategy: (retries) => {
+            if (retries > 10) {
+              logError('Redis max retry attempts reached');
+              return new Error('Redis max retry attempts reached');
+            }
+            return Math.min(retries * 100, 3000);
           }
-          if (options.total_retry_time > 1000 * 60 * 60) {
-            logError('Redis retry time exhausted');
-            return new Error('Retry time exhausted');
-          }
-          if (options.attempt > 10) {
-            logError('Redis max retry attempts reached');
-            return undefined;
-          }
-          // Retry after 1 second
-          return Math.min(options.attempt * 100, 3000);
         }
       });
 
@@ -234,12 +227,24 @@ setTimeout(() => {
 
 // Fallback functions when Redis is not available
 async function getJSONFallback(key) {
-  console.log(`🗄️ Redis fallback - using database for key: ${key}`);
+  if (fallbackLogCount < MAX_FALLBACK_LOGS) {
+    console.log(`🗄️ Redis fallback - using database for key: ${key}`);
+    fallbackLogCount++;
+    if (fallbackLogCount === MAX_FALLBACK_LOGS) {
+      console.log('🔇 Redis fallback logging silenced - Redis is not connected');
+    }
+  }
   return null;
 }
 
 async function setJSONFallback(key, value, ttl) {
-  console.log(`🗄️ Redis fallback - skipping cache for key: ${key}`);
+  if (fallbackLogCount < MAX_FALLBACK_LOGS) {
+    console.log(`🗄️ Redis fallback - skipping cache for key: ${key}`);
+    fallbackLogCount++;
+    if (fallbackLogCount === MAX_FALLBACK_LOGS) {
+      console.log('🔇 Redis fallback logging silenced - Redis is not connected');
+    }
+  }
   return false;
 }
 

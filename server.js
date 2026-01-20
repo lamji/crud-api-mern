@@ -30,6 +30,7 @@ const cartRoutes = require('./routes/cart');
 const productRoutes = require('./routes/products');
 const posRoutes = require('./routes/pos');
 const paymentRoutes = require('./routes/payments');
+const resumeRoutes = require('./routes/resume');
 
 /**
  * Custom Middleware
@@ -150,6 +151,7 @@ db.then(() => {
   app.use('/api/products', productRoutes);
   app.use('/api/pos', posRoutes);
   app.use('/api/payments', paymentRoutes);
+  app.use('/api/resume', resumeRoutes);
 
   /**
    * Error Handling Middleware
