@@ -38,6 +38,7 @@
     "nodemailer": "^7.0.12",
     "onesignal-node": "^3.4.0",
     "p-limit": "^7.2.0",
+    "puppeteer": "^24.35.0",
     "puppeteer-core": "^24.35.0",
     "redis": "^5.10.0",
     "socket.io": "^4.8.3",

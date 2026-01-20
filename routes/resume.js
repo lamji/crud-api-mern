@@ -312,7 +312,8 @@ async function generateResumePdfBuffer() {
         '/usr/bin/chromium-browser',
         '/usr/local/bin/chrome',
         '/snap/bin/chromium',
-        '/usr/bin/google-chrome'
+        '/usr/bin/google-chrome',
+        '/home/northflank/.cache/puppeteer/chrome/linux-143.0.7499.192/chrome-linux64/chrome',
       ];
       
       for (const altPath of alternatives) {
