@@ -271,6 +271,9 @@ function getResumeHtml() {
 }
 
 async function generateResumePdfBuffer() {
+  console.log('Platform:', process.platform);
+  console.log('Node version:', process.version);
+  
   const isServerless = !!process.env.AWS_REGION || process.env.VERCEL === '1' || !!process.env.VERCEL_REGION;
 
   let browser;
@@ -283,19 +286,52 @@ async function generateResumePdfBuffer() {
       headless: chromium.headless,
     });
   } else {
-    // For local development, try to find Chrome executable
+    // For local development and containers
     const executablePath = 
       process.platform === 'win32' 
         ? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
         : process.platform === 'darwin'
         ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
-        : '/usr/bin/google-chrome';
+        : '/usr/bin/google-chrome'; // Try this first
     
-    browser = await puppeteer.launch({
-      headless: true,
-      executablePath,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
-    });
+    console.log('Trying Chrome at:', executablePath);
+    
+    try {
+      browser = await puppeteer.launch({
+        headless: true,
+        executablePath,
+        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+      });
+    } catch (chromeError) {
+      console.log('Chrome not found at default path, trying alternatives...');
+      
+      // Try common Linux Chrome locations
+      const alternatives = [
+        '/usr/bin/chromium-browser',
+        '/usr/bin/chromium',
+        '/snap/bin/chromium',
+        '/usr/local/bin/chrome'
+      ];
+      
+      for (const altPath of alternatives) {
+        try {
+          console.log('Trying:', altPath);
+          browser = await puppeteer.launch({
+            headless: true,
+            executablePath: altPath,
+            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+          });
+          console.log('Success with:', altPath);
+          break;
+        } catch (e) {
+          console.log('Failed:', altPath);
+        }
+      }
+      
+      if (!browser) {
+        throw new Error('Chrome/Chromium not found. Please install Chrome or use pre-generated PDF.');
+      }
+    }
   }
 
   try {
@@ -332,23 +368,44 @@ router.post('/send', async (req, res) => {
       return res.status(500).json({ success: false, message: 'Email service not configured on server' });
     }
 
-    const pdfBuffer = await generateResumePdfBuffer();
+    let pdfBuffer = null;
+    try {
+      pdfBuffer = await generateResumePdfBuffer();
+      console.log('PDF generated successfully');
+    } catch (pdfError) {
+      console.error('PDF generation failed, sending link instead:', pdfError);
+      // Fallback: just send the resume link
+    }
 
-    await transporter.sendMail({
+    const emailContent = {
       from: `"Jick T. Lampago" <${process.env.EMAIL_FROM || process.env.EMAIL_USER}>`,
       to: email,
-      subject: 'Jick T. Lampago - Resume',
-      html: `<div style="font-family: Arial, sans-serif;">Attached is my latest resume PDF.</div>`,
-      attachments: [
-        {
-          filename: 'Jick_Lampago_Resume.pdf',
-          content: pdfBuffer,
-          contentType: 'application/pdf',
-        },
-      ],
-    });
+      subject: 'Resume - Jick T. Lampago',
+      html: pdfBuffer 
+        ? `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <p>Hello,</p>
+            <p>Thank you for your interest in my profile. I've attached my resume for your review.</p>
+            <p>Best regards,<br>Jick T. Lampago</p>
+           </div>`
+        : `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <p>Hello,</p>
+            <p>Thank you for your interest in my resume!</p>
+            <p>You can view my complete profile and portfolio at: <a href="https://www.jicklampago.xyz">www.jicklampago.xyz</a></p>
+            <p>Best regards,<br>Jick T. Lampago</p>
+           </div>`,
+      attachments: pdfBuffer ? [{
+        filename: 'Jick_Lampago_Resume.pdf',
+        content: pdfBuffer,
+        contentType: 'application/pdf',
+      }] : undefined,
+    };
 
-    return res.json({ success: true, message: 'Resume sent successfully!' });
+    await transporter.sendMail(emailContent);
+
+    return res.json({ 
+      success: true, 
+      message: pdfBuffer ? 'Resume sent successfully!' : 'Resume link sent successfully!' 
+    });
   } catch (error) {
     console.error('resume/send error:', error);
     return res.status(500).json({ success: false, message: 'Failed to send resume' });
