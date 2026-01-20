@@ -274,66 +274,39 @@ async function generateResumePdfBuffer() {
   console.log('Platform:', process.platform);
   console.log('Node version:', process.version);
   
-  const isServerless = !!process.env.AWS_REGION || process.env.VERCEL === '1' || !!process.env.VERCEL_REGION;
-
   let browser;
-  if (isServerless) {
+  try {
+    // Use @sparticuz/chromium for all environments (works in containers)
     const executablePath = await chromium.executablePath();
+    console.log('Using Chromium at:', executablePath);
+    
     browser = await puppeteer.launch({
       args: chromium.args,
       defaultViewport: chromium.defaultViewport,
       executablePath,
       headless: chromium.headless,
     });
-  } else {
-    // For local development and containers
+  } catch (chromiumError) {
+    console.error('@sparticuz/chromium failed, trying local Chrome:', chromiumError);
+    
+    // Fallback to local Chrome for development
     const executablePath = 
       process.platform === 'win32' 
         ? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
         : process.platform === 'darwin'
         ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
-        : '/usr/bin/google-chrome'; // Try this first
-    
-    console.log('Trying Chrome at:', executablePath);
+        : '/usr/bin/google-chrome';
     
     try {
+      console.log('Trying local Chrome at:', executablePath);
       browser = await puppeteer.launch({
         headless: true,
         executablePath,
         args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
       });
-    } catch (chromeError) {
-      console.log('Chrome not found at default path, trying alternatives...');
-      
-      // Try common Linux Chrome locations
-      const alternatives = [
-        '/home/heroku/.cache/puppeteer/chrome/linux-143.0.7499.192/chrome-linux64/chrome',
-        '/usr/bin/chromium',
-        '/usr/bin/chromium-browser',
-        '/usr/local/bin/chrome',
-        '/snap/bin/chromium',
-        '/usr/bin/google-chrome',
-        '/home/northflank/.cache/puppeteer/chrome/linux-143.0.7499.192/chrome-linux64/chrome',
-      ];
-      
-      for (const altPath of alternatives) {
-        try {
-          console.log('Trying:', altPath);
-          browser = await puppeteer.launch({
-            headless: true,
-            executablePath: altPath,
-            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
-          });
-          console.log('Success with:', altPath);
-          break;
-        } catch (e) {
-          console.log('Failed:', altPath);
-        }
-      }
-      
-      if (!browser) {
-        throw new Error('Chrome/Chromium not found. Please install Chrome or use pre-generated PDF.');
-      }
+    } catch (localChromeError) {
+      console.error('Local Chrome also failed:', localChromeError);
+      throw new Error('Chrome/Chromium not available. Please install Chrome or check container configuration.');
     }
   }
 
